@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "outDir": "app/app",
+        "rootDir": "src",
+        "sourceRoot": "src",
+        "sourceMap": true,
+        "allowJs": true,
+        "watch": true
+    },
+    "include": [
+        "src/**/*"
+    ]
+}

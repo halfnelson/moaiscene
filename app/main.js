@@ -176,7 +176,7 @@ function initialize () {
       resizable: false
     })
     infoWindow.loadURL(`file://${__dirname}/info.html`)
-
+    infoWindow.setMenu(null);
     infoWindow.on('closed', () => {
       infoWindow = null
     })

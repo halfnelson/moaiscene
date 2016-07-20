@@ -1,13 +1,13 @@
 {
-  "name": "SkelEktron",
-  "productName": "SkelEktron",
-  "description": "Electron Template Desktop Application",
-  "version": "0.0.3",
-  "homepage": "https://github.com/BZCoding/SkelEktron",
+  "name": "MoaiScene",
+  "productName": "MoaiScene",
+  "description": "Moai Scene Editor",
+  "version": "0.0.1",
+  "homepage": "https://github.com/halfnelson/moaiscene",
   "author": {
-    "name": "Vito Tardia / BZ Coding",
-    "email": "vito@bzcoding.com",
-    "url": "https://bzcoding.com/"
+    "name": "David Pershouse",
+    "email": "dpershouse@gmail.com",
+    "url": "http://github.com/halfnelson"
   },
   "main": "main.js",
   "electronVersion": "1.0.0",
