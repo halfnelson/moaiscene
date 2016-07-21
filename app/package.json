@@ -12,14 +12,17 @@
   "main": "main.js",
   "electronVersion": "1.0.0",
   "dependencies": {
-    "electron-debug": "^1",
     "devtron": "^1.1",
-    "lodash": "^4"
+    "electron-debug": "^1",
+    "lodash": "^4",
+    "react": "^15.2.1",
+    "react-dom": "^15.2.1"
   },
   "config": {
     "url": "index.html",
     "update": {
       "url": false
     }
-  }
+  },
+  "devDependencies": {}
 }

@@ -76,7 +76,10 @@ function initialize () {
         'preload': path.resolve(path.join(__dirname, 'preload.js'))
       }
     })
-
+    if (isDev) {
+      electron.BrowserWindow.addDevToolsExtension('${__dirname}/../tools/ReactDevTools');
+    }
+    
     // Remove file:// if you need to load http URLs
     win.loadURL(`file://${__dirname}/${pjson.config.url}`, {})
 

@@ -5,6 +5,7 @@
     "isShellCommand": true,
     "suppressTaskName": true,
     "command": "tsc",
+    "args":["--jsx", "react"],
     "showOutput": "silent",
     "problemMatcher": "$tsc"
 }

@@ -3,13 +3,16 @@
         "target": "es6",
         "module": "commonjs",
         "outDir": "app/app",
-        "rootDir": "src",
-        "sourceRoot": "src",
         "sourceMap": true,
+        "rootDir": "appSrc",
+//        "sourceRoot": "appSrc",
         "allowJs": true,
-        "watch": true
+        "watch": true,
+        "jsx": "react"
     },
     "include": [
-        "src/**/*"
+        "./appSrc/**/*",
+        "./typings/index.d.ts"
     ]
+   
 }
