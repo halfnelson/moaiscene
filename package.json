@@ -105,6 +105,9 @@
     "shelljs": "^0.7",
     "spectron": "~3.0.0",
     "standard": "^7",
-    "typings": "^1.3.2"
+    "typings": "^1.3.2",
+    "mobx": "~2.4.0",
+    "mobx-react": "~3.5.1",
+    "mobx-react-devtools": "~4.2.3"
   }
 }

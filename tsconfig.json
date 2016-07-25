@@ -4,11 +4,15 @@
         "module": "commonjs",
         "outDir": "app/app",
         "sourceMap": true,
-        "rootDir": "appSrc",
+ //       "rootDir": "appSrc",
 //        "sourceRoot": "appSrc",
-        "allowJs": true,
+  //      "allowJs": true,
+        "rootDirs": [
+            "./app"
+        ],
         "watch": true,
-        "jsx": "react"
+        "jsx": "react",
+        "experimentalDecorators": true
     },
     "include": [
         "./appSrc/**/*",
