@@ -6,5 +6,5 @@ import DevTools from 'mobx-react-devtools';
 import { MoaiHost } from './lib/moaihost';
  
 
-var srcPath = "k:/dev/moai-projects/test175/src";
+var srcPath = "k:\\dev\\moai-projects\\test175\\src\\";
 ReactDOM.render(<MoaiHost sourcePath={srcPath} />, document.getElementById('root'));

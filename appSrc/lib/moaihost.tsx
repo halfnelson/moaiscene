@@ -24,8 +24,12 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
     componentDidMount() {
         var player = new MoaiPlayer($("#moaiplayer"));
         
+      
         player.initMoai(); 
+        
+      
         player.moai.getEmscripten();
+     
         console.log(this.props.sourcePath)
 
         window['player'] = player;
@@ -38,6 +42,15 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
             player: player,
             mount: mount
         }) 
+
+        player.hideInfo();
+        player.moai.hostinit();
+        player.moai.emscripten.run()
+        player.moai.AKUSetWorkingDirectory('/project');
+        
+        player.moai.AKURunScript('main.lua');
+        player.moai.pause();
+        player.moai.updateloop();
     }
    
     render() {
