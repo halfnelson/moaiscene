@@ -21,18 +21,22 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
         }
     }
 
+    componentWillUnmount() {
+        console.log("destroying player");
+        this.setState({
+            player: null,
+            mount: null
+        })
+    }
+
     componentDidMount() {
+        console.log("creating new player");
+
         var player = new MoaiPlayer($("#moaiplayer"));
-        
       
         player.initMoai(); 
-        
-      
         player.moai.getEmscripten();
-     
         console.log(this.props.sourcePath)
-
-        window['player'] = player;
         
         player.moai.emscripten.FS_mkdir('/project');
         var mount = player.moai.emscripten.FS_mount(player.moai.emscripten.FS_filesystems.NODEFS, { root: this.props.sourcePath }, '/project');

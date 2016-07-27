@@ -577,6 +577,10 @@ MoaiJS.prototype.OpenWindowFunc = function(title,width,height) {
 		   }, 66);
 		}
 	  }
+
+      this.removeResizeListener = function() {
+          window.removeEventListener("resize", resizeThrottler, false);
+        }
 	  var that = this;
 	  function resizeHandler() {
 		that.recalibrateInput();
@@ -632,6 +636,12 @@ MoaiJS.prototype.runhost = function(mainLua) {
 	var main = mainLua || 'main.lua'
 	console.log("launching "+main);
 	this.AKURunScript(main);
+}
+
+MoaiJS.prototype.teardown = function() {
+    if (this.removeEventListener)  {
+        this.removeResizeListener()
+    }
 }
 
 //Courtesy of Mozilla
@@ -828,6 +838,8 @@ function MoaiPlayer(element, skipTemplate) {
 		}
 	  }
 	  
+      this.destroyResizeListener = function() { window.removeEventListener("resize", resizeThrottler, false); }
+
 	  var resizeHandler = function() {
 		this.resizeCanvas();
 	  }.bind(this);
@@ -839,6 +851,12 @@ function MoaiPlayer(element, skipTemplate) {
     }
 }
 
+MoaiPlayer.prototype.destroy = function () {
+    this.stop();
+    this.moai = null;
+    this.destroyResizeListener();
+
+}
 
 MoaiPlayer.prototype.resizeCanvas = function() {
 	//we apply portrait class if the ratio of width to height is larger than our canvases

@@ -5,6 +5,20 @@ const { app } = require('electron')
 const ipc = require('electron').ipcMain
 
 var menuTemplate = [
+  { 
+    label: 'File',
+    submenu: [
+       {
+         label: 'Open',
+         click: function (item, focusedWindow) {
+           if (focusedWindow) {
+             focusedWindow.send('open-project');
+           }
+         }
+       }
+    ]
+  },
+  
   {
     label: 'Edit',
     submenu: [
