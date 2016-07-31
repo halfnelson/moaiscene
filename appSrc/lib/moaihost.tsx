@@ -3,6 +3,9 @@ import * as ReactDOM from 'react-dom';
 
 declare var MoaiPlayer:any;
 
+const path = require('path');
+
+
 interface IHostProps {
     sourcePath: string;
 }
@@ -10,6 +13,7 @@ interface IHostProps {
 interface IHostState {
     player?: any;
     mount?: any;
+    editor_mount?: any;
 }
 
 export class MoaiHost extends React.Component<IHostProps, IHostState> {
@@ -31,30 +35,41 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
 
     componentDidMount() {
         console.log("creating new player");
+        
+        var appDir = path.join(window['appDir'],"lua");
 
         var player = new MoaiPlayer($("#moaiplayer"));
-      
-        player.initMoai(); 
-        player.moai.getEmscripten();
-        console.log(this.props.sourcePath)
         
+        player.hideInfo();
+        if (!player.moai) { player.initMoai(); }
+        player.moai.getEmscripten();
+        player.moai.emscripten.FS_mkdir('/editor');
+        var editor_mount = player.moai.emscripten.FS_mount(player.moai.emscripten.FS_filesystems.NODEFS, { root: appDir+"\\" }, '/editor');
+
         player.moai.emscripten.FS_mkdir('/project');
         var mount = player.moai.emscripten.FS_mount(player.moai.emscripten.FS_filesystems.NODEFS, { root: this.props.sourcePath }, '/project');
-        player.moai.emscripten.FS_chdir('/project');
-        
+
         this.setState({
             player: player,
-            mount: mount
+            mount: mount,
+            editor_mount: editor_mount
         }) 
 
-        player.hideInfo();
-        player.moai.hostinit();
-        player.moai.emscripten.run()
-        player.moai.AKUSetWorkingDirectory('/project');
+        //needs to be done on next turn after emscripten is initialized
+        window.setTimeout(function() { 
+              console.log("MoaiJS Filesystem Loaded");	
+  	          player.moai.emscripten.run();   
+		      player.moai.restoreDocumentDirectory();
+
+                player.moai.hostinit();
+                player.moai.AKUSetWorkingDirectory('/editor');
+	            player.moai.AKURunScript("main.lua");
+                
+                //player.moai.pause();
+                //player.moai.updateloop();
+        }.bind(this),0);
         
-        player.moai.AKURunScript('main.lua');
-        player.moai.pause();
-        player.moai.updateloop();
+        
     }
    
     render() {
@@ -68,9 +83,4 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
             </div>
         );
     }
-
-    dorun() {
-          this.state.player.moai.run(this.state.player.script);
-    }
-
 }
