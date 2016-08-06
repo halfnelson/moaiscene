@@ -8,6 +8,7 @@ const { ipcRenderer } = require('electron');
 const { dialog } = require('electron').remote;
 
 declare var window: Window;
+require('./less/styles.less');
 
 var srcPath = "k:\\dev\\moai-projects\\test175\\src\\";
 
