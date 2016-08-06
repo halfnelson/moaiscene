@@ -32,8 +32,8 @@
     "pack:linux": "npm run pack:lin64 && npm run pack:lin32",
     "pack:lin32": "build --platform=linux --arch=ia32",
     "pack:lin64": "build --platform=linux --arch=x64",
-    "pack": "build --platform=all --arch=x64,ia32",
-    "prebuild": "node build/target.js",
+    "pack": "build --platform=all --arch=all",
+    "prebuild": "webpack && node build/target.js",
     "postbuild": "node build/target.js --clean",
     "prebuild:osx": "npm run prebuild",
     "postbuild:osx": "npm run postbuild",
@@ -44,7 +44,7 @@
     "build:linux": "npm run build:lin64 && npm run build:lin32 -d",
     "build:lin32": "build --platform=linux --arch=ia32 -d",
     "build:lin64": "build --platform=linux --arch=x64 -d",
-    "build": "build --platform=all --arch=x64,ia32 -d",
+    "build": "build --platform=all --arch=all -d",
     "postinstall": "install-app-deps"
   },
   "standard": {
