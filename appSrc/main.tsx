@@ -22,3 +22,4 @@ ipcRenderer.on('open-project', function () {
 
 
 ReactDOM.render(<MoaiHost sourcePath={srcPath} key={srcPath} />, document.getElementById('root'));
+ 
