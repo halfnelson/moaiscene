@@ -116,6 +116,9 @@ function initialize () {
 
     win.webContents.on('did-finish-load', () => {
       win.webContents.send('hello')
+      if (isDev) {
+        win.webContents.toggleDevTools()
+      }
     })
 
     return win

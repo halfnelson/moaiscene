@@ -22,9 +22,10 @@ module.exports = {
                 loader: "ts-loader" 
             },
             {
-                test: /\.less$/,
+                test: /\.less$|\.css$/,
                 loader: ExtractTextPlugin.extract('css-loader?sourceMap!less-loader?sourceMap')
             }
+
         ],
     },
     plugins: [
