@@ -13,7 +13,7 @@ import { ResizeMessage, Widget } from 'phosphor-widget';
 
 
 
-declare var window: Window;
+//declare var window: Window;
 require('./less/styles.less');
 
 var srcPath = "k:\\dev\\moai-projects\\test175\\src\\";
@@ -82,3 +82,8 @@ function main() {
 
 window.onload = main;
 //ReactDOM.render(<MoaiHost sourcePath={srcPath} key={srcPath} />, document.getElementById('root'));
+window['keys'] = {};
+window.onkeyup = function(e) {window['keys'][e.key]=false;}
+window.onkeydown = function(e) {
+    window['keys'][e.key]=true;
+}

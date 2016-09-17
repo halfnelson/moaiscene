@@ -59,8 +59,12 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
         console.log("ERROR: ", err);
     };
 
-    onPrint(x) {
+    onPrint(x: string) {
         console.log(x);
+        if (x.startsWith("MESSAGE:\n")) {
+            //deserialize message
+            
+        }
     };
 
     renderLoop() {
@@ -169,7 +173,7 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
     }
     render() {
         return (
-            <canvas ref={(ref) => this.moaiCanvas = ref} width={this.props.layoutWidth} height={this.props.layoutHeight}></canvas>
+            <canvas ref={(ref) => this.moaiCanvas = ref} width={this.props.layoutWidth} height={this.props.layoutHeight} tabIndex="0"></canvas>
         );
     }
 }

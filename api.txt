@@ -1,0 +1,68 @@
+
+## Events from Lua
+
+--AddPropToSelection (prop) adds to selected 
+--SelectProp (prop)sets selection to just this prop
+--RemovePropFromSelection(prop) removes prop from selected
+--ClearSelection ()clears selection
+
+PropClick(prop)
+
+SelectionScaleBy ( x, y )
+SelectionRotateBy ( deg )
+SelectionMoveBy ( x, y )
+
+
+## Calls into lua
+
+SetSelection(propIds)
+
+set( id, properties_args )
+create( id, type, args )
+
+getProps( id )
+getSchema( type ) ->  includes editors = [ ], constructorEditors = [ ], constructorProps = [], properties = [ ]
+getTypes( )
+
+                  
+
+
+
+Scene
+
+--Common
+Set ( prop, [args] )
+
+
+
+
+
+
+
+
+--Node
+SetAttrLink ( node, attrID, srcNode, srcAttrId)
+ClearAttrLink ( node, attrID )
+                              
+--Prop      
+setGrid
+setRemapper
+setDeck
+
+--Graphics Prop
+setUVTransform
+setScissorRect
+                            
+--Deck
+setBoundsDeck                            
+setHitMask
+setShader
+setTexture
+
+--GFX Resources
+IndexBuffer
+VertexBuffer
+MOAITexture
+
+
+

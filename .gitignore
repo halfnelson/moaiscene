@@ -3,3 +3,5 @@ node_modules
 .idea
 npm-debug.log
 app/app/
+test/scratch.js
+test/scratch.js.map
