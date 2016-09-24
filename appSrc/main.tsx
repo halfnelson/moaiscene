@@ -64,12 +64,17 @@ function createContent(title: string): Widget {
   return widget;
 }
 
+
 function main() {
     var panel = new DockPanel();
     panel.id="app";
 
-    var moaiHost = new ReactWidget(MoaiHost, { sourcePath: srcPath, key: srcPath });
+    var app = {};
+    window['app'] = app;
 
+    var moaiHost = new ReactWidget(MoaiHost, { sourcePath: srcPath, key: srcPath, app: app });
+
+  
     panel.insertLeft(moaiHost);
     moaiHost.title.text="Scene";
     
@@ -77,7 +82,9 @@ function main() {
 
 
     panel.attach(document.body);
+    
     window.onresize = () => { panel.update() };
+
 }
 
 window.onload = main;

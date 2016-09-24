@@ -7,6 +7,7 @@ const path = require('path');
 
 
 interface IHostProps {
+    app: any;
     sourcePath: string;
     layoutWidth: number;
     layoutHeight: number;
@@ -166,6 +167,7 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
 
         }.bind(this), 0);
 
+        this.props.app.moai = moai;
     }
 
     toggle() {

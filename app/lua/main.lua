@@ -148,6 +148,10 @@ table.insert(Scene.layers, layer)
 
 local prop = MOAIProp2D.new ()
 prop:setDeck ( gfxQuad )
+prop.name = "prop1"
+prop.parent = layer
+
+
 layer:insertProp ( prop )
 
 table.insert(Scene.props, prop)
@@ -219,10 +223,18 @@ local PropClick = LeftMouseDown:map(function(down, x, y)
      
 local Drags = LeftMouseDown:flatMap(function() return MouseDeltas:takeUntil(LeftMouseUp) end)
                   
-            
+
+function resolveName(prop)
+  local name = prop.name or "unnamed"
+  if prop.parent then
+    return resolveName(prop.parent).."."..name
+  else
+    return name
+  end
+end            
 
 PropClick:subscribe(function(prop, layer) 
-      print("selected",prop,layer)
+      print("selected",resolveName(prop),resolveName(layer))
       Editor:select(prop, layer) 
       prop:moveRot(45,3)
       prop:moveScl(0.5,0.5,3)

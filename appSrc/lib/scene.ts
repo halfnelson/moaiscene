@@ -1,110 +1,74 @@
 
-interface Serializable {
-    toJSON(): any; 
-}
+import { SerializedSceneCommand, SceneCommand } from './sceneCommands'
+import { SceneObject, PropertyValueScalar, SceneObjectReference } from './sceneObject'
+import { SceneEngine } from './sceneEngine'
+import { PropertySetCommand, ConstructCommand, DeleteCommand } from './sceneCommands'
 
-class PropertyValueScalar implements Serializable  {
-    kind: 'scalar' = 'scalar';
-    value: any;
-    toJSON():any {
-        return {
-            kind: 'scalar',
-            value: this.value,
-        }
-    }
-}
+/*
+*  Serialized Scene
+*/
 
-class SceneObjectReference implements Serializable {
-    kind: 'ref' = 'ref';
-    value: SceneObject;
-    getName():string  {
-       return this.value.getFullName();
-    }
-    toJSON():any {
-        return {
-            kind: 'ref',
-            value: this.getName()
-        }
-    }
-}
 
-export type SceneObjectPropertyValue = PropertyValueScalar | SceneObjectReference;
-
-export type SceneObjectProperties = Map<string,SceneObjectPropertyValue> 
-
-export class SceneObject implements Serializable {
-    public name: string; 
-    public parent: SceneObjectReference;
-    
-    //determines instance and editor values
-    public type: string; 
-    public constructorArgs: Array<SceneObjectPropertyValue> = [];
-    public properties: SceneObjectProperties = new Map<string, SceneObjectPropertyValue>();
-    
-    public getFullName(): string {
-        return this.getParentPrefix() + name;
-    }
-
-    public getParentPrefix(): string {
-        if (!this.parent) return "";
-        return this.parent.value.getFullName() + ".";    
-    }
-
-    public toJSON():any {
-        return {
-            name: this.name,
-            parent: this.parent && this.parent.toJSON() || null,
-            type: this.type,
-            constructorArgs: this.constructorArgs.map(a => a.toJSON()),
-            properties:  new Map(Array.from(this.properties).map<[string, SceneObjectPropertyValue]>(v => [v[0], v[1].toJSON()])) 
-        }
-    }
-}
-
-export class Scene {
-    public sceneEnv: Array<String> = [];
-    public objects: Array<SceneObject> = [];
-    public objectByName(name: string) {
-         this.objects.find(o => o.getFullName() == name );
-    }
+export interface SerializedScene {
+    engine: string;
+    initializeScripts: Array<string>;
+    sceneCommands: Array<SerializedSceneCommand>;
 }
 
 
 /*
-eg
- editorPreload.lua
- flower = require('lib/flower.lua')
-
- sample.scene
- {
-    SceneEnv: ['editorPreload.lua'],
-    Objects: [
-        {
-            name: 'props',
-            type: 'Table'    
-        },
-        { 
-            name: 'testprop',
-            parent: 'props'
-            type: 'MOAIProp'
-            properties: {
-                            'Loc': {
-                                type: 'scalar',
-                                value: [ 25, 25 ]
-                            }
-                         }
-        },
-        {
-            name: 'decks.testdeck',
-            type: 'MOAIGfxQuadDeck2D'
-        },
-        {
-            name: 'textures.testtexture',
-            type: 'MOAITexture'
-        }
-
-    ],
-
-
- }
+*   Scene
 */
+
+type SceneCommandListener = (command: SceneCommand) => void;
+
+export class Scene {
+    public engineName: string;
+    private initializeScripts: Array<string> = [];
+    objects: Array<SceneObject>;
+    changeLog: Array<SceneCommand>;
+
+    private flattenedChangeLog() {
+        //TODO: actually flatten this thing :)
+        return this.changeLog;
+    }
+    
+    save(): SerializedScene { 
+        var cl = this.flattenedChangeLog();
+        var scl = cl.map(cmd=>cmd.serialize());
+        return {
+            engine: this.engineName,
+            initializeScripts: this.initializeScripts,
+            sceneCommands: scl
+        }
+    }
+
+    loadInitializeScripts(scripts: Array<string>) {
+        this.initializeScripts.concat(scripts);
+    }
+    
+    objectByName(name: string): SceneObject {
+        return this.objects.find(v=>v.getFullName() == name);
+    }
+
+    private deserializeCommand(c: SerializedSceneCommand):SceneCommand {
+        var resolve = n => this.objectByName(n)
+        switch (c.kind) {
+            case 'propertySet':
+                return PropertySetCommand.deserialize(c, resolve);
+            case 'construct':
+                return ConstructCommand.deserialize(c, resolve);
+            case 'delete':
+                return DeleteCommand.deserialize(c, resolve);
+        }
+    }
+
+    load(data: SerializedScene) {
+        this.loadInitializeScripts(data.initializeScripts);
+        data.sceneCommands.map(c => this.deserializeCommand(c)).forEach(c=>this.executeCommand(c));
+    }
+
+    executeCommand(command: SceneCommand) { throw Error("Not Implemented") }
+
+    exportAsCode(): string { throw Error("Not Implemented") }
+}

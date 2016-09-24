@@ -351,6 +351,25 @@ var MoaiJS = (function () {
             Module.cwrap('AKUCallFunc', 'number', null)();
         }
 
+        var callStringFunc = Module.cwrap('CallStringFunc', 'string', ['string']);
+        this.AKURunFunc = function (func) {
+            var jsonFunc = `
+                          return MOAIJsonParser.encode ( { (function() 
+                                        ${func}
+                                 end)() })      
+            `;
+            var res = callStringFunc(jsonFunc);
+            if (res) {
+                try {
+                    return JSON.parse(res);
+                } catch(e) {
+                    console.log("bad value from call json func", res)
+                    return undefined;
+                }
+            } else {
+                return undefined
+            }
+        }
 
         this.AKUSetWorkingDirectory = Module.cwrap('AKUSetWorkingDirectory', 'number', ['string']);
         this.AKUGetSimStep = Module.cwrap('AKUGetSimStep', 'number', null);
