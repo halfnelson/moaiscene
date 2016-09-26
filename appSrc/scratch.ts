@@ -1,5 +1,5 @@
 import { jsValueToLua } from './lib/luahelpers'
-
+/*
 import * as  Scene from './lib/scene'
 
 
@@ -56,3 +56,4 @@ scene.objects.push(viewport, layer, decks, deck, prop);
 
 var sceneJson = JSON.stringify(scene,null,2);
 console.log(sceneJson);
+*/

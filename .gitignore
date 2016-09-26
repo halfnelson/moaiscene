@@ -5,3 +5,5 @@ npm-debug.log
 app/app/
 test/scratch.js
 test/scratch.js.map
+test/unit/all.js
+test/unit/all.js.map

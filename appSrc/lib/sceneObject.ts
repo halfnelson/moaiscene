@@ -50,7 +50,7 @@ export type SceneObjectPropertyValues = { [index: string]: SceneObjectPropertyVa
 
 export class SceneObject  {
     public name: string; 
-    public parent: SceneObjectReference;
+    public parent: SceneObjectReference = null;
     
     //determines instance and editor values
     public type: string; 

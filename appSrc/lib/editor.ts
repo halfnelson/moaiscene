@@ -1,6 +1,6 @@
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { SceneCommand } from './sceneCommands'
+import { SceneCommand, DeleteCommand } from './sceneCommands'
 import { SceneObject } from './sceneObject'
 import { Scene } from './scene'
     
@@ -38,19 +38,29 @@ export class Editor {
     }
 
     private applyToScene(command:SceneCommand) {
-        this.addUndo(command);
         this.scene.executeCommand(command);
     }
+    
+    do(command:SceneCommand) {
+        this.addUndo(command);
+        this.applyToScene(command);
+    }
+
+    reverseCommand(command: SceneCommand): Array<SceneCommand> {
+       return command.inverse()
+    }
+
 
     undo() {
        var lastcommand = this.undostack.pop();
        if (!lastcommand) return;
 
        this.redostack.push(lastcommand);
+
        if (lastcommand.kind == "bulk") {
-           lastcommand.commands.forEach(c=>this.applyToScene(c.inverse()));
+           lastcommand.commands.forEach(c=>this.reverseCommand(c).forEach(rc=>this.applyToScene(rc)));
        } else {
-           this.applyToScene(lastcommand.inverse());
+           this.reverseCommand(lastcommand).forEach(rc=>this.applyToScene(rc));
        }
     }
 
@@ -64,6 +74,9 @@ export class Editor {
            this.applyToScene(nextcommand);
        }
     }
+
+
+
 
     private clearRedoStack() {
         this.redostack = [];

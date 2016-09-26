@@ -11,7 +11,7 @@ interface SerializedPropertySetCommand {
 interface SerializedConstructCommand  {
     kind: "construct";
     type: string;
-    parent: string;
+    parent?: string;
     name: string;
     args: Array<SerializedSceneObjectPropertyValue>;
     
@@ -36,7 +36,16 @@ type ObjectResolver = (name: string) => SceneObject;
 
 export type SceneCommand = PropertySetCommand | DeleteCommand | ConstructCommand 
 
-export class PropertySetCommand {
+export interface SerializeableSceneCommand {
+    serialize(): SerializedSceneCommand
+}
+
+export interface InversableSceneCommand {
+    inverse(): Array<SceneCommand>
+}
+
+
+export class PropertySetCommand implements SerializeableSceneCommand, InversableSceneCommand{
     kind: "propertySet" = "propertySet"; 
     propertyName: string;
     object: SceneObject;
@@ -51,13 +60,13 @@ export class PropertySetCommand {
         }
     }
 
-    public inverse(): PropertySetCommand {
+    public inverse(): Array<SceneCommand> {
         var c = new PropertySetCommand();
         c.propertyName = this.propertyName;
         c.object = this.object;
         c.oldValue = this.newValue;
         c.newValue = this.oldValue;
-        return c; 
+        return [c]; 
     }
 
     static deserialize(c: SerializedPropertySetCommand,  resolve: ObjectResolver ): PropertySetCommand {
@@ -70,7 +79,7 @@ export class PropertySetCommand {
 }
 
 
-export class ConstructCommand  {
+export class ConstructCommand implements SerializeableSceneCommand, InversableSceneCommand  {
     kind: "construct" = "construct";
     object: SceneObject;
     args: Array<SceneObjectPropertyValue> = [];
@@ -78,22 +87,24 @@ export class ConstructCommand  {
         return {
             kind: this.kind,
             type: this.object.type,
-            parent: this.object.parent && this.object.parent.value.getFullName(),
+            parent: (this.object.parent && this.object.parent.value.getFullName()) ,
             name: this.object.name,
             args: this.args.map(a=>a.serialize())
         }
     }
 
-    public inverse(): DeleteCommand {
+    public inverse(): Array<SceneCommand> {
         var c = new DeleteCommand();
         c.object = this.object;
-        return c;
+        return [c];
     }
 
    static deserialize(c: SerializedConstructCommand,  resolve: ObjectResolver ): ConstructCommand {
             var newcons = new ConstructCommand();
             newcons.object = new SceneObject();
-            newcons.object.parent = new SceneObjectReference(resolve(c.parent));
+            if (c.parent) {
+                newcons.object.parent = new SceneObjectReference(resolve(c.parent));
+            }
             newcons.object.name = c.name;
             newcons.args = c.args.map(a=> deserializeValue(a, resolve))
             newcons.object.type = c.type;
@@ -101,25 +112,27 @@ export class ConstructCommand  {
     }    
 }
 
-export class DeleteCommand {
+export class DeleteCommand implements SerializeableSceneCommand {
     kind:  "delete" = "delete";
     object: SceneObject;
+    undoCommands: Array<SceneCommand> = []; //(not serialized) commands needed to undelete
     public serialize(): SerializedDeleteCommand {
         return {
             kind: this.kind,
             object: this.object.getFullName()
         }
     }
-    public inverse(): ConstructCommand {
-        var c = new ConstructCommand();
-        c.object = this.object;
-        return c;
-    }
-    
+
     static deserialize(c: SerializedDeleteCommand,  resolve: ObjectResolver ): DeleteCommand {
             var newc = new DeleteCommand();
             newc.object = resolve(c.object)
             return newc;       
     }
+    
+    public inverse(): Array<SceneCommand> {
+        return this.undoCommands;
+    }
+
+
 }
 
