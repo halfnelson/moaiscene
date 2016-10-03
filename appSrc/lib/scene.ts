@@ -1,7 +1,8 @@
 
 import { SerializedSceneCommand, SceneCommand, SerializeableSceneCommand } from './sceneCommands'
-import { SceneObject, PropertyValueScalar, SceneObjectReference } from './sceneObject'
+import { SceneTree, SceneObject, PropertyValueScalar, SceneObjectReference } from './sceneObject'
 import { PropertySetCommand, ConstructCommand, DeleteCommand } from './sceneCommands'
+import { SceneEngine } from './SceneEngines'
 
 /*
 *  Serialized Scene
@@ -22,21 +23,29 @@ export interface SerializedScene {
 type SceneCommandListener = (command: SceneCommand) => void;
 
 export class Scene {
-    public engineName: string = "base";
+    public engine: SceneEngine;
     private initializeScripts: Array<string> = [];
-    objects: Array<SceneObject> = [];
+    sceneTree: SceneTree = new SceneTree();
     changeLog: Array<SceneCommand> = [];
 
+    protected constructor() {
+    }
+
+    public static async InitWithEngine(engine: SceneEngine): Promise<Scene> {
+        var s = new Scene();
+        s.engine = engine;
+        await engine.newScene()
+        return s;
+    }
+
     private flattenedChangeLog(log: Array<SceneCommand>): Array<SceneCommand> {
-        //TODO: actually flatten this thing :)
+        
         var out: Array<SceneCommand> = []
         var deleted: Array<SceneObject> = []
         var set: Array<string> = []
         
         for (var i = log.length - 1; i >= 0; i--) {
             var c = log[i];
-
-
 
             //already deleted?
             if (deleted.indexOf(c.object) > -1) {
@@ -68,7 +77,6 @@ export class Scene {
             out.unshift(c);
         } 
         
-        
         return out;
     }
     
@@ -76,7 +84,7 @@ export class Scene {
         var cl = this.flattenedChangeLog(this.changeLog);
         var scl = cl.map(cmd=>cmd.serialize());
         return {
-            engine: this.engineName,
+            engine: this.engine.name,
             initializeScripts: this.initializeScripts,
             sceneCommands: scl
         }
@@ -87,13 +95,13 @@ export class Scene {
     }
     
     objectByName(name: string): SceneObject {
-        return this.objects.find(v=>v.getFullName() == name);
+        return this.sceneTree.objectByName(name);
     }
 
     private deserializeCommand(c: SerializedSceneCommand):SceneCommand {
         var resolve = n => { 
             var res = this.objectByName(n)
-            if (!res) console.log(this.objects)
+            if (!res) console.log(this.sceneTree)
             if (!res) throw new Error(`Could not find ${n} during deserialize`);
 
             return res;
@@ -109,29 +117,30 @@ export class Scene {
         }
     }
 
-    load(data: SerializedScene) {
+    public async load(data: SerializedScene): Promise<void> {
         this.loadInitializeScripts(data.initializeScripts);
-        data.sceneCommands.forEach(c => this.executeCommand(this.deserializeCommand(c)));
+        var results = data.sceneCommands.map(async c=> await this.executeCommand(this.deserializeCommand(c)));
+        await Promise.all(results);
     }
 
-    protected executePropertySetCommand(command: PropertySetCommand) {
-        command.object.properties[command.propertyName] = command.newValue;
+    protected async executePropertySetCommand(command: PropertySetCommand):Promise<void> {
+        await this.engine.executePropertySetCommand(command, this.sceneTree);
     }
 
-    protected executeConstructCommand(command: ConstructCommand) {
-        this.objects.push(command.object);
+    protected async executeConstructCommand(command: ConstructCommand):Promise<void> {
+        await this.engine.executeConstructCommand(command, this.sceneTree);
     }   
 
-    protected executeDeleteCommand(command: DeleteCommand) {
-        this.objects = this.objects.filter(o => o != command.object)
+    protected async executeDeleteCommand(command: DeleteCommand):Promise<void> {
+        await this.engine.executeDeleteCommand(command, this.sceneTree);
     }
 
-    executeCommand(command: SceneCommand) { 
+    async executeCommand(command: SceneCommand):Promise<void> { 
         this.changeLog.push(command);
         switch (command.kind) {
-            case 'propertySet': this.executePropertySetCommand(command); break;
-            case 'construct': this.executeConstructCommand(command); break;
-            case 'delete': this.executeDeleteCommand(command); break;
+            case 'propertySet': await this.executePropertySetCommand(command); break;
+            case 'construct': await this.executeConstructCommand(command); break;
+            case 'delete': await this.executeDeleteCommand(command); break;
         } 
     }
 

@@ -74,7 +74,7 @@ function main() {
 
     var moaiHost = new ReactWidget(MoaiHost, { sourcePath: srcPath, key: srcPath, app: app });
 
-  
+    
     panel.insertLeft(moaiHost);
     moaiHost.title.text="Scene";
     

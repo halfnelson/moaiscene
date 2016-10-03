@@ -87,7 +87,7 @@ export class ConstructCommand implements SerializeableSceneCommand, InversableSc
         return {
             kind: this.kind,
             type: this.object.type,
-            parent: (this.object.parent && this.object.parent.value.getFullName()) ,
+            parent: (this.object.parent && this.object.parent.getFullName()) ,
             name: this.object.name,
             args: this.args.map(a=>a.serialize())
         }
@@ -103,7 +103,7 @@ export class ConstructCommand implements SerializeableSceneCommand, InversableSc
             var newcons = new ConstructCommand();
             newcons.object = new SceneObject();
             if (c.parent) {
-                newcons.object.parent = new SceneObjectReference(resolve(c.parent));
+                newcons.object.parent = resolve(c.parent);
             }
             newcons.object.name = c.name;
             newcons.args = c.args.map(a=> deserializeValue(a, resolve))

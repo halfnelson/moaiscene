@@ -2,8 +2,9 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { SceneCommand, DeleteCommand } from './sceneCommands'
 import { SceneObject } from './sceneObject'
-import { Scene } from './scene'
-    
+import { Scene, SerializedScene } from './scene'
+import { SceneEngines, SceneEngine } from './sceneEngines'
+import fs = require("fs")
 
 class BulkActionCommand {
     kind: "bulk";
@@ -11,14 +12,35 @@ class BulkActionCommand {
 }
 
 
-export class Editor {
+export class SceneEditor {
+    scenepath: string; 
     scene: Scene;
-    selected: Array<SceneObject>;
+    selected: Array<SceneObject> = [];
 
     private undostack: Array<SceneCommand|BulkActionCommand> = [];
     private redostack: Array<SceneCommand|BulkActionCommand> = [];
     
     private bulkAction: BulkActionCommand;
+
+    public async newSceneFromType(type: string): Promise<void> {
+         var engine = SceneEngines.engineByName(type);
+         if (engine) {
+             this.scene = await Scene.InitWithEngine(engine);
+         } else {
+             throw new Error(`No scene engine called ${type}`)
+         }
+         return Promise.resolve();
+    }
+
+    public async loadSceneFromFile(path: string): Promise<void> {
+        this.scenepath = path;
+        var result = fs.readFileSync(path);
+        var serializedScene:SerializedScene = JSON.parse(result.toString());
+        await this.newSceneFromType(serializedScene.engine);
+        await this.scene.load(serializedScene);
+        return Promise.resolve();
+    }
+
 
     private beginBulkAction() {
         this.bulkAction = new BulkActionCommand();
@@ -75,9 +97,6 @@ export class Editor {
        }
     }
 
-
-
-
     private clearRedoStack() {
         this.redostack = [];
     }
@@ -95,6 +114,8 @@ export class Editor {
     removeFromSelection(obj: SceneObject) {}
     clearSelection() {}
     
-    loadScene(path: string) {}
-    saveScene(path: string) {}
+    saveAs(path: string) {}
+    save() {}
+
+    closeScene() {}
 }

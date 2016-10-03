@@ -50,7 +50,7 @@ export type SceneObjectPropertyValues = { [index: string]: SceneObjectPropertyVa
 
 export class SceneObject  {
     public name: string; 
-    public parent: SceneObjectReference = null;
+    public parent: SceneObject = null;
     
     //determines instance and editor values
     public type: string; 
@@ -63,15 +63,37 @@ export class SceneObject  {
 
     public getParentPrefix(): string {
         if (!this.parent) return "";
-        return this.parent.value.getFullName() + ".";    
+        return this.parent.getFullName() + ".";    
     }
 
     public serialize():any {
         return {
             name: this.name,
-            parent: this.parent && this.parent.serialize() || null,
+            parent: this.parent && this.parent.getFullName(),
             type: this.type,
             properties:  Object.keys(this.properties).reduce((out,key)=> { out[key] = this.properties[key].serialize(); return out } ,{}) 
         }
     }
+}
+
+export class SceneTree {
+    private objects: Array<SceneObject> = [];
+    
+    public childrenOf(so: SceneObject): Array<SceneObject> {
+        return this.objects.filter(x=>x.parent == so)
+    }
+
+    public objectByName(name: string): SceneObject {
+        return this.objects.find(v=>v.getFullName() == name);
+    }
+
+    public append(so: SceneObject) {
+        this.objects.push(so);
+    }
+
+    public remove(so: SceneObject) {
+        this.objects = this.objects.filter(o=>o != so);
+    }
+
+
 }

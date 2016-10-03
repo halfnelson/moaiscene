@@ -62,7 +62,7 @@ describe('(unit) SceneCommands', () => {
       it('it can serialize a child item', (done) => {
           var c = constructCommand(so);
           var parent = testObject("parent");
-          c.object.parent = new SceneObjectReference(parent);
+          c.object.parent = parent;
           var serialized = c.serialize();
           expect(serialized).to.exist;
           expect(serialized.kind).to.equal("construct");
@@ -74,7 +74,7 @@ describe('(unit) SceneCommands', () => {
       it('it can deserialize a serialized item', (done) => {
           var c = constructCommand(so);
           var parent = testObject("parent");
-          c.object.parent = new SceneObjectReference(parent);
+          c.object.parent = parent;
 
 
          let resolve: (name: string) => SceneObject = name => {
@@ -104,7 +104,7 @@ describe('(unit) SceneCommands', () => {
       it('it can serialize a child item', (done) => {
           var c = deleteCommand(so);
           var parent = testObject("parent");
-          c.object.parent = new SceneObjectReference(parent);
+          c.object.parent = parent;
           var serialized = c.serialize();
           expect(serialized).to.exist;
           expect(serialized.kind).to.equal("delete");
@@ -115,7 +115,7 @@ describe('(unit) SceneCommands', () => {
       it('it can deserialize a serialized item', (done) => {
           var c = deleteCommand(so);
           var parent = testObject("parent");
-          c.object.parent = new SceneObjectReference(parent);
+          c.object.parent = parent;
 
 
          let resolve: (name: string) => SceneObject = name => {
@@ -146,7 +146,7 @@ describe('(unit) SceneCommands', () => {
       it('it can serialize a child item', (done) => {
           var c = propertySetCommand(so,"test",{deep: true});
           var parent = testObject("parent");
-          c.object.parent = new SceneObjectReference(parent);
+          c.object.parent =parent;
           var serialized = c.serialize();
           expect(serialized).to.exist;
           expect(serialized.kind).to.equal("propertySet");
@@ -158,7 +158,7 @@ describe('(unit) SceneCommands', () => {
       it('it can deserialize a serialized item', (done) => {
           var c = propertySetCommand(so,"test",{deep: true});
           var parent = testObject("parent");
-          c.object.parent = new SceneObjectReference(parent);
+          c.object.parent = parent;
 
 
          let resolve: (name: string) => SceneObject = name => {
