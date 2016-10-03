@@ -41,7 +41,7 @@ describe('(unit) Scene', () => {
 
   // Before each of the tests
   beforeEach(async function() {
-         scene = await Scene.InitWithEngine(SceneEngines.engineByName('base'))
+        scene = Scene.InitWithEngine(await SceneEngines.engineByName('base'));
   })
 
   describe('save/load', () => {
@@ -58,6 +58,7 @@ describe('(unit) Scene', () => {
 
             var secondsetcmd = propertySetCommand(child.object,"childprop",{ complex: "type" })
             await scene.executeCommand(secondsetcmd);
+            
             var sceneOut= scene.save();
             var sceneIn = JSON.parse(JSON.stringify(sceneOut));
 
@@ -78,10 +79,9 @@ describe('(unit) Scene', () => {
             var secondsetcmd = propertySetCommand(child.object,"childprop",{ complex: "type" })
             await scene.executeCommand(secondsetcmd);
 
-            var sceneData= scene.save();
-          
+            var sceneData = scene.save();
             
-            var s =  await Scene.InitWithEngine(SceneEngines.engineByName('base'));
+            var s =  Scene.InitWithEngine(await SceneEngines.engineByName('base'));
             await s.load(sceneData);
             expect(s.changeLog).to.be.length(4);
             expect(s.save()).to.eql(sceneData);

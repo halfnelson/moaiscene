@@ -2,10 +2,51 @@ import { Scene } from '../../scene';
 import { SceneEngine, SceneEngines } from '../../sceneEngines'
 import { SceneCommand, ConstructCommand, DeleteCommand, PropertySetCommand } from '../../sceneCommands'
 import { SceneObject, SceneTree } from '../../sceneObject'
+import { SceneEditor } from '../../SceneEditor'
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
+interface IPreviewProps {
+    sceneEditor: SceneEditor,
+    layoutWidth: number,
+    layoutHeight: number
+}
+
+interface IPreviewState {
+   
+}
+
+export class BaseScenePreview extends React.Component<IPreviewProps, IPreviewState> {
+
+    constructor(props: IPreviewProps) {
+        super(props);
+        this.state = {}
+    }
+
+    componentWillUnmount() {}
+
+    componentWillReceiveProps(nextProps: IPreviewProps) {}
+
+    componentDidMount() {}
+    
+    render() {
+        return <div><h1>Base Engine Previe </h1>
+        <pre>
+        { JSON.stringify((this.props.sceneEditor.scene.engine as BaseEngine).sg,null,2) }
+        </pre></div>
+    }
+}
+
 
 class BaseEngine implements SceneEngine {
     name: string = "base";
     sg: any;
+
+    previewComponent: typeof React.Component = BaseScenePreview;
+
+    constructor() {
+        this.sg = {};
+    }
 
     private getObject(o: SceneObject): any {
         if (o.parent) {
@@ -73,11 +114,8 @@ class BaseEngine implements SceneEngine {
         var parent = command.object.parent ? this.getObject(command.object.parent) : this.sg;
         delete parent[command.object.name]; 
     }
-    
-    async newScene(): Promise<void> {
-        this.sg = {};
-        return Promise.resolve();
-    }
+
+
 } 
 
-SceneEngines.registerEngine(new BaseEngine());
+SceneEngines.registerEngine('base', async ()=> new BaseEngine());

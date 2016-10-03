@@ -112,6 +112,8 @@
     "phosphor-widget": "^1.0.0-rc.1",
     "pre-commit": "^1.1",
     "rimraf": "^2.5",
+    "react": "^15.2.1",
+    "react-dom": "^15.2.1",
     "shelljs": "^0.7",
     "source-map-loader": "^0.1.5",
     "spectron": "~3.0.0",

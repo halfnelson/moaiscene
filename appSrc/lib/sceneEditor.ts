@@ -22,23 +22,30 @@ export class SceneEditor {
     
     private bulkAction: BulkActionCommand;
 
-    public async newSceneFromType(type: string): Promise<void> {
-         var engine = SceneEngines.engineByName(type);
+    public async loadNewScene(type: string):Promise<void> {
+        this.scene = await this.newSceneFromType(type);
+    };
+
+    public async LoadScene(path: string): Promise<void> {
+        this.scene = await this.loadSceneFromFile(path);
+    };
+
+    private async newSceneFromType(type: string): Promise<Scene> {
+         var engine = await SceneEngines.engineByName(type);
          if (engine) {
-             this.scene = await Scene.InitWithEngine(engine);
+             return Scene.InitWithEngine(engine);
          } else {
              throw new Error(`No scene engine called ${type}`)
          }
-         return Promise.resolve();
     }
 
-    public async loadSceneFromFile(path: string): Promise<void> {
+    public async loadSceneFromFile(path: string): Promise<Scene> {
         this.scenepath = path;
         var result = fs.readFileSync(path);
         var serializedScene:SerializedScene = JSON.parse(result.toString());
-        await this.newSceneFromType(serializedScene.engine);
-        await this.scene.load(serializedScene);
-        return Promise.resolve();
+        var scene = await this.newSceneFromType(serializedScene.engine);
+        await scene.load(serializedScene);
+        return Promise.resolve(scene);
     }
 
 

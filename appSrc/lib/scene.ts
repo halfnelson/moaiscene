@@ -31,10 +31,9 @@ export class Scene {
     protected constructor() {
     }
 
-    public static async InitWithEngine(engine: SceneEngine): Promise<Scene> {
+    public static  InitWithEngine(engine: SceneEngine): Scene {
         var s = new Scene();
         s.engine = engine;
-        await engine.newScene()
         return s;
     }
 

@@ -4,6 +4,7 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 import { SceneExplorer } from './lib/components/sceneExplorer';
+import { ScenePreview } from './lib/components/scenePreview';
 const { ipcRenderer } = require('electron');
 const { dialog } = require('electron').remote;
 
@@ -66,7 +67,7 @@ function createContent(title: string): Widget {
 }
 
 async function loadMockScene(editor: SceneEditor) {
-    await editor.newSceneFromType("base");
+    await editor.loadNewScene("base");
     editor.createObject(null,"test", "object",[]);
 }
 
@@ -86,6 +87,11 @@ function main() {
 
     panel.insertLeft(sceneExplorer);
     
+    var scenePreview = new ReactWidget(ScenePreview, { sceneEditor: sceneEditor });
+
+    scenePreview.title.text="Preview";
+    panel.insertRight(scenePreview,sceneExplorer);
+
     panel.attach(document.body);
     window.onresize = () => { panel.update() };
 
