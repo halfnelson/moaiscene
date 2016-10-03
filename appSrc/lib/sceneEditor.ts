@@ -1,6 +1,6 @@
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { SceneCommand, DeleteCommand } from './sceneCommands'
+import { SceneCommand, DeleteCommand, ConstructCommand, PropertySetCommand } from './sceneCommands'
 import { SceneObject } from './sceneObject'
 import { Scene, SerializedScene } from './scene'
 import { SceneEngines, SceneEngine } from './sceneEngines'
@@ -14,8 +14,8 @@ class BulkActionCommand {
 
 export class SceneEditor {
     scenepath: string; 
-    scene: Scene;
-    selected: Array<SceneObject> = [];
+    @observable scene: Scene;
+    @observable selected: Array<SceneObject> = [];
 
     private undostack: Array<SceneCommand|BulkActionCommand> = [];
     private redostack: Array<SceneCommand|BulkActionCommand> = [];
@@ -106,14 +106,40 @@ export class SceneEditor {
     }    
 
     setPropertyOnSelected(propertyName: string, value: any) {}
-    createObject(parent: SceneObject, name: string, type: string, args: Array<any>) {}
-    deleteObject(obj: SceneObject) {}
-    addInitializeScripts(scripts: Array<string>) {}
     
-    addToSelection(obj: SceneObject) {}
-    removeFromSelection(obj: SceneObject) {}
-    clearSelection() {}
+    createObject(parent: SceneObject, name: string, type: string, args: Array<any>) {
+        var obj = new SceneObject();
+        obj.name = name;
+        obj.parent = parent;
+        obj.type = type;
+        
+        var cmd = new ConstructCommand();
+        cmd.object = obj;
+        cmd.args = args;
+
+        this.do(cmd);
+    }
+
+    deleteObject(obj: SceneObject) {};
     
+    addInitializeScripts(scripts: Array<string>) {};
+    
+    addToSelection(obj: SceneObject) {
+        this.selected.push(obj);
+    }
+
+    removeFromSelection(obj: SceneObject) {
+        this.selected = this.selected.filter(o=>o != obj);
+    }
+
+    clearSelection() {
+        this.selected = [];
+    };
+    
+    objectByName(name: string): SceneObject {
+        return this.scene.objectByName(name);   
+    }
+
     saveAs(path: string) {}
     save() {}
 

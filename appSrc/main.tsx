@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
-import { MoaiHost } from './lib/moaihost';
+import { SceneExplorer } from './lib/components/sceneExplorer';
 const { ipcRenderer } = require('electron');
 const { dialog } = require('electron').remote;
 
@@ -11,7 +11,8 @@ import { DockPanel } from 'phosphor-dockpanel';
 import { Message } from 'phosphor-messaging';
 import { ResizeMessage, Widget } from 'phosphor-widget';
 
-
+import { SceneEditor } from './lib/sceneEditor';
+import './lib/engines/base/baseEngine';
 
 //declare var window: Window;
 require('./less/styles.less');
@@ -19,11 +20,11 @@ require('./less/styles.less');
 var srcPath = "k:\\dev\\moai-projects\\test175\\src\\";
 
 ipcRenderer.on('open-project', function () {
-    var selected = dialog.showOpenDialog({ properties: ['openDirectory'] });
+    /*var selected = dialog.showOpenDialog({ properties: ['openDirectory'] });
     if (selected && selected.length > 0) {
         srcPath = selected[0];
         ReactDOM.render(<MoaiHost sourcePath={srcPath} key={srcPath} />, document.getElementById('root'));
-    }
+    }*/
 });
 
 class ReactWidget<T extends typeof React.Component> extends Widget {
@@ -64,6 +65,11 @@ function createContent(title: string): Widget {
   return widget;
 }
 
+async function loadMockScene(editor: SceneEditor) {
+    await editor.newSceneFromType("base");
+    editor.createObject(null,"test", "object",[]);
+}
+
 
 function main() {
     var panel = new DockPanel();
@@ -72,19 +78,30 @@ function main() {
     var app = {};
     window['app'] = app;
 
-    var moaiHost = new ReactWidget(MoaiHost, { sourcePath: srcPath, key: srcPath, app: app });
+    var sceneEditor = new SceneEditor();
+    app['sceneEditor'] = sceneEditor;
 
+    var sceneExplorer = new ReactWidget(SceneExplorer, { sceneEditor: sceneEditor });
+    sceneExplorer.title.text="Objects";
+
+    panel.insertLeft(sceneExplorer);
     
-    panel.insertLeft(moaiHost);
-    moaiHost.title.text="Scene";
-    
-    var r1 = createContent('Red');
-
-
     panel.attach(document.body);
-    
     window.onresize = () => { panel.update() };
 
+    loadMockScene(sceneEditor);
+
+    window.setTimeout(()=> {
+        console.log('added')
+        
+        sceneEditor.createObject(null,"test2", "object",[]);
+        var parent = sceneEditor.objectByName("test");
+        sceneEditor.createObject(parent, "child1", "object", []);
+        sceneEditor.createObject(parent, "child2", "object", []);
+         parent = sceneEditor.objectByName("test.child1");
+         sceneEditor.createObject(parent, "child11", "object", []);
+    },100);
+    
 }
 
 window.onload = main;

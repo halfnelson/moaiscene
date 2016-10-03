@@ -1,4 +1,4 @@
-
+import { observable } from 'mobx';
 export interface SerializedPropertyValueScalar  {
     kind: 'scalar';
     value: any;
@@ -77,7 +77,7 @@ export class SceneObject  {
 }
 
 export class SceneTree {
-    private objects: Array<SceneObject> = [];
+    @observable private objects: Array<SceneObject> = [];
     
     public childrenOf(so: SceneObject): Array<SceneObject> {
         return this.objects.filter(x=>x.parent == so)

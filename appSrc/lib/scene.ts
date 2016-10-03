@@ -1,4 +1,4 @@
-
+import { observable } from 'mobx';
 import { SerializedSceneCommand, SceneCommand, SerializeableSceneCommand } from './sceneCommands'
 import { SceneTree, SceneObject, PropertyValueScalar, SceneObjectReference } from './sceneObject'
 import { PropertySetCommand, ConstructCommand, DeleteCommand } from './sceneCommands'
@@ -25,7 +25,7 @@ type SceneCommandListener = (command: SceneCommand) => void;
 export class Scene {
     public engine: SceneEngine;
     private initializeScripts: Array<string> = [];
-    sceneTree: SceneTree = new SceneTree();
+    @observable sceneTree: SceneTree = new SceneTree();
     changeLog: Array<SceneCommand> = [];
 
     protected constructor() {
