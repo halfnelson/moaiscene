@@ -14,6 +14,7 @@ class BulkActionCommand {
 
 export class SceneEditor {
     scenepath: string; 
+    engine: SceneEngine;
     @observable scene: Scene;
     @observable selected: Array<SceneObject> = [];
 
@@ -33,6 +34,7 @@ export class SceneEditor {
     private async newSceneFromType(type: string): Promise<Scene> {
          var engine = await SceneEngines.engineByName(type);
          if (engine) {
+             this.engine = engine;
              return Scene.InitWithEngine(engine);
          } else {
              throw new Error(`No scene engine called ${type}`)

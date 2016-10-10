@@ -28,6 +28,6 @@ export class ScenePreview extends React.Component<IPreviewProps, IPreviewState> 
     componentDidMount() {}
     
     render() {
-        return <this.props.sceneEditor.scene.engine.previewComponent {...this.props}> </this.props.sceneEditor.scene.engine.previewComponent>
+        return <this.props.sceneEditor.engine.previewComponent {...this.props}> </this.props.sceneEditor.engine.previewComponent>
     }
 }

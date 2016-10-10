@@ -5,10 +5,12 @@ import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 import { SceneExplorer } from './lib/components/sceneExplorer';
 import { ScenePreview } from './lib/components/scenePreview';
+import { ScenePalette } from './lib/components/scenePalette';
 const { ipcRenderer } = require('electron');
 const { dialog } = require('electron').remote;
 
 import { DockPanel } from 'phosphor-dockpanel';
+import { SplitPanel } from 'phosphor-splitpanel';
 import { Message } from 'phosphor-messaging';
 import { ResizeMessage, Widget } from 'phosphor-widget';
 
@@ -73,8 +75,6 @@ async function loadMockScene(editor: SceneEditor) {
 
 
 function main() {
-    var panel = new DockPanel();
-    panel.id="app";
 
     var app = {};
     window['app'] = app;
@@ -82,18 +82,50 @@ function main() {
     var sceneEditor = new SceneEditor();
     app['sceneEditor'] = sceneEditor;
 
-    var sceneExplorer = new ReactWidget(SceneExplorer, { sceneEditor: sceneEditor });
-    sceneExplorer.title.text="Objects";
 
-    panel.insertLeft(sceneExplorer);
+    //Setup app panels
+    var rootpanel = new SplitPanel();
+    rootpanel.id="app";
     
+    rootpanel.orientation = SplitPanel.Horizontal;
+    rootpanel.spacing = 5;
+
+    var leftpanel = new DockPanel();
+    leftpanel.id = "areaLeft";
+    var centrepanel = new DockPanel();
+    centrepanel.id = "areaCentre";
+    var rightpanel = new DockPanel();
+    rightpanel.id = "areaRight";
+
+    rootpanel.addChild(leftpanel);
+    rootpanel.addChild(centrepanel);
+    rootpanel.addChild(rightpanel);
+
+    SplitPanel.setStretch(leftpanel,0);
+    SplitPanel.setStretch(centrepanel,1);
+    SplitPanel.setStretch(rightpanel,0);
+    
+    rootpanel.setSizes([1,3,1]);
+
+
+    //load our Editor panels
+   
+    var sceneExplorer = new ReactWidget(SceneExplorer, { sceneEditor: sceneEditor });
+    sceneExplorer.title.text="Scene";
+
     var scenePreview = new ReactWidget(ScenePreview, { sceneEditor: sceneEditor });
-
     scenePreview.title.text="Preview";
-    panel.insertRight(scenePreview,sceneExplorer);
 
-    panel.attach(document.body);
-    window.onresize = () => { panel.update() };
+    var scenePalette = new ReactWidget(ScenePalette, { sceneEditor: sceneEditor });
+    scenePalette.title.text="Components";
+   
+    leftpanel.insertLeft(sceneExplorer);
+    centrepanel.insertLeft(scenePreview);
+    rightpanel.insertLeft(scenePalette);
+
+    rootpanel.attach(document.body);
+    
+    window.onresize = () => { rootpanel.update() };
 
     loadMockScene(sceneEditor);
 
