@@ -30,6 +30,15 @@ interface IExplorerState {
     componentDidMount() { 
 
     }
+    selectNode(obj: SceneObject, event: React.SyntheticEvent) {
+        event.stopPropagation();
+        //select it
+        if (!window['keys']['Control']) { 
+            this.props.sceneEditor.clearSelection()
+        }
+        this.props.sceneEditor.addToSelection(obj);
+    }
+
     toggleNode(obj: SceneObject, event: React.SyntheticEvent ) {
         event.stopPropagation();
         if (this.state.expanded.indexOf(obj) > -1) {
@@ -52,7 +61,7 @@ interface IExplorerState {
             var children = sceneTree.childrenOf(o);
             if (children.length == 0) return;          
             return <ul> 
-                        { children.map(c => <li key={c.name} onClick={this.toggleNode.bind(this, c)}><span className="node">{ c.name }</span> { renderChildren(c) }</li>) }
+                        { children.map(c => <li key={c.getFullName()} onClick={this.toggleNode.bind(this, c)}><span onClick={this.selectNode.bind(this,c)}  className={`node ${this.props.sceneEditor.selected.indexOf(c) >=0  ? "selected": "" }`} >{ c.name }</span> { renderChildren(c) }</li>) }
                    </ul>
         }
         return (

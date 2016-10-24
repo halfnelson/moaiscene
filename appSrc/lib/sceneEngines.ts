@@ -1,11 +1,20 @@
 import { Scene } from './scene';
 import { SceneCommand, ConstructCommand, DeleteCommand, PropertySetCommand } from './sceneCommands'
-import { SceneTree } from './sceneObject'
+import { SceneComponent } from './sceneComponent'
+import { SceneTree, SceneObject } from './sceneObject'
 import { SceneEditor } from './sceneEditor'
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 
+export interface EditorProps {
+    options: { [index: string]: any;   }
+    propertyName: string;
+    obj: SceneObject;
+    sceneEditor: SceneEditor;
+}
+
+export type EditorList = { [index: string]: React.StatelessComponent<EditorProps> }
 
 export interface SceneEngine {
     name: string;
@@ -13,6 +22,8 @@ export interface SceneEngine {
     executeConstructCommand(command: ConstructCommand, sceneTree: SceneTree): Promise<void>;
     executeDeleteCommand(command: DeleteCommand, sceneTree: SceneTree): Promise<void>;
     previewComponent: typeof React.Component;
+    getComponents(): Array<SceneComponent>;
+    getEditors(): EditorList;
 }
 
 class EngineManager { 

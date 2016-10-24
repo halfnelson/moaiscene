@@ -26,7 +26,7 @@ export class Scene {
     public engine: SceneEngine;
     private initializeScripts: Array<string> = [];
     @observable sceneTree: SceneTree = new SceneTree();
-    changeLog: Array<SceneCommand> = [];
+    @observable changeLog: Array<SceneCommand> = [];
 
     protected constructor() {
     }

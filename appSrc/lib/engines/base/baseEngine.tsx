@@ -1,10 +1,13 @@
 import { Scene } from '../../scene';
-import { SceneEngine, SceneEngines } from '../../sceneEngines'
+import { SceneEngine, SceneEngines, EditorList } from '../../sceneEngines'
 import { SceneCommand, ConstructCommand, DeleteCommand, PropertySetCommand } from '../../sceneCommands'
 import { SceneObject, SceneTree } from '../../sceneObject'
+import { SceneComponent } from '../../sceneComponent'
 import { SceneEditor } from '../../SceneEditor'
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { observer } from 'mobx-react';
+import { extendObservable, autorun, observable } from 'mobx';
 
 interface IPreviewProps {
     sceneEditor: SceneEditor,
@@ -16,6 +19,7 @@ interface IPreviewState {
    
 }
 
+@observer
 export class BaseScenePreview extends React.Component<IPreviewProps, IPreviewState> {
 
     constructor(props: IPreviewProps) {
@@ -25,14 +29,17 @@ export class BaseScenePreview extends React.Component<IPreviewProps, IPreviewSta
 
     componentWillUnmount() {}
 
-    componentWillReceiveProps(nextProps: IPreviewProps) {}
+    componentWillReceiveProps(nextProps: IPreviewProps) {
+      
+    }
 
     componentDidMount() {}
     
-    render() {
-        return <div><h1>Base Engine Previe </h1>
+    render() { 
+        var dummy = this.props.sceneEditor.scene.changeLog.length;
+        return <div><h1>Base Engine Preview</h1>
         <pre>
-        { JSON.stringify((this.props.sceneEditor.scene.engine as BaseEngine).sg,null,2) }
+        { JSON.stringify((this.props.sceneEditor.engine as BaseEngine).sg,null,2) }
         </pre></div>
     }
 }
@@ -40,13 +47,11 @@ export class BaseScenePreview extends React.Component<IPreviewProps, IPreviewSta
 
 class BaseEngine implements SceneEngine {
     name: string = "base";
-    sg: any;
+    sg: any = {};
 
     previewComponent: typeof React.Component = BaseScenePreview;
 
-    constructor() {
-        this.sg = {};
-    }
+    constructor() {  }
 
     private getObject(o: SceneObject): any {
         if (o.parent) {
@@ -105,8 +110,9 @@ class BaseEngine implements SceneEngine {
 
     async executeConstructCommand(command: ConstructCommand, sceneTree: SceneTree): Promise<void> {
         sceneTree.append(command.object);
-        var parent = command.object.parent ? this.getObject(command.object.parent) : this.sg;
-        parent[command.object.name] = { type: command.object.type }
+        var sg = this.sg;
+        var parent = command.object.parent ? this.getObject(command.object.parent) : sg;
+        parent[command.object.name] =  { type: command.object.type }
     }
 
     async executeDeleteCommand(command: DeleteCommand, sceneTree: SceneTree): Promise<void> {
@@ -115,6 +121,28 @@ class BaseEngine implements SceneEngine {
         delete parent[command.object.name]; 
     }
 
+    getComponents(): Array<SceneComponent> {
+        return [
+            {
+                name: "Circle",
+                properties: [
+                    { name: "radius", type: "scalar" },
+                    { name: "location", type: "scalar" }
+                ]
+            },
+            {
+                name: "Square",
+                properties: [
+                    { name: "sideLength", type: "scalar" },
+                    { name: "location", type: "scalar" }
+                ]
+            }
+        ]
+    }
+
+    getEditors(): EditorList {
+        return {};
+    }
 
 } 
 

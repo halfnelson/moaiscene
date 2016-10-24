@@ -55,7 +55,7 @@ export class SceneObject  {
     //determines instance and editor values
     public type: string; 
   
-    public properties: SceneObjectPropertyValues = {};
+    @observable public properties: SceneObjectPropertyValues = {};
     
     public getFullName(): string {
         return this.getParentPrefix() + this.name;

@@ -14,6 +14,7 @@ interface IPreviewState {
    
 }
 
+@observer
 export class ScenePreview extends React.Component<IPreviewProps, IPreviewState> {
 
     constructor(props: IPreviewProps) {

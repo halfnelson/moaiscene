@@ -6,6 +6,7 @@ import DevTools from 'mobx-react-devtools';
 import { SceneExplorer } from './lib/components/sceneExplorer';
 import { ScenePreview } from './lib/components/scenePreview';
 import { ScenePalette } from './lib/components/scenePalette';
+import { SceneObjectProperties } from './lib/components/sceneObjectProperties';
 const { ipcRenderer } = require('electron');
 const { dialog } = require('electron').remote;
 
@@ -70,7 +71,7 @@ function createContent(title: string): Widget {
 
 async function loadMockScene(editor: SceneEditor) {
     await editor.loadNewScene("base");
-    editor.createObject(null,"test", "object",[]);
+    
 }
 
 
@@ -119,27 +120,27 @@ function main() {
     var scenePalette = new ReactWidget(ScenePalette, { sceneEditor: sceneEditor });
     scenePalette.title.text="Components";
    
+    var sceneObjectProperties = new ReactWidget(SceneObjectProperties, { sceneEditor: sceneEditor,  });
+    sceneObjectProperties.title.text="Properties";
+
     leftpanel.insertLeft(sceneExplorer);
     centrepanel.insertLeft(scenePreview);
     rightpanel.insertLeft(scenePalette);
+    rightpanel.insertBottom(sceneObjectProperties)
 
     rootpanel.attach(document.body);
     
     window.onresize = () => { rootpanel.update() };
 
-    loadMockScene(sceneEditor);
-
-    window.setTimeout(()=> {
-        console.log('added')
-        
-        sceneEditor.createObject(null,"test2", "object",[]);
+    loadMockScene(sceneEditor).then(function() {
+        sceneEditor.createObject(null,"test", "Square",[]);
         var parent = sceneEditor.objectByName("test");
-        sceneEditor.createObject(parent, "child1", "object", []);
-        sceneEditor.createObject(parent, "child2", "object", []);
-         parent = sceneEditor.objectByName("test.child1");
-         sceneEditor.createObject(parent, "child11", "object", []);
-    },100);
-    
+        sceneEditor.createObject(parent, "child1", "Circle", []);
+        sceneEditor.createObject(parent, "child2", "Circle", []);
+        parent = sceneEditor.objectByName("test.child1");
+        sceneEditor.createObject(parent, "child11", "Square", []);
+    });
+ 
 }
 
 window.onload = main;

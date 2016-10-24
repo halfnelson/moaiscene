@@ -14,7 +14,7 @@ class BulkActionCommand {
 
 export class SceneEditor {
     scenepath: string; 
-    engine: SceneEngine;
+    @observable engine: SceneEngine;
     @observable scene: Scene;
     @observable selected: Array<SceneObject> = [];
 
