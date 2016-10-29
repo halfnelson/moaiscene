@@ -135,12 +135,13 @@ export class Scene {
     }
 
     async executeCommand(command: SceneCommand):Promise<void> { 
-        this.changeLog.push(command);
+       
         switch (command.kind) {
             case 'propertySet': await this.executePropertySetCommand(command); break;
             case 'construct': await this.executeConstructCommand(command); break;
             case 'delete': await this.executeDeleteCommand(command); break;
         } 
+        this.changeLog.push(command);
     }
 
     clearChangeLog() {

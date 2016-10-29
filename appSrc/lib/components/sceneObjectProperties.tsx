@@ -14,13 +14,28 @@ interface IObjectPropertiesState {
     
 }
 
-var defaultScalarPropertyEditor: React.StatelessComponent<EditorProps> = function(props: EditorProps) {
-     var propval = props.obj.properties[props.propertyName];
-      
-     return <div className="propertyEditor">
-            <label>{props.propertyName}</label>
-            <input type="text" value={propval ? propval.value : ""}></input>
-        </div>
+@observer export class DefaultScalarPropertyEditor extends React.Component<EditorProps,{}> { 
+
+    constructor(props: EditorProps) {
+        super(props);
+        this.state = {}
+        this.handleChange = this.handleChange.bind(this);
+    }
+    handleChange(event) {
+         const value = event.target.value;
+         this.props.sceneEditor.setScalarOnSelected(this.props.propertyName, value);
+         console.log("value set");
+    }
+
+    render() {
+        var propval = this.props.propertyValue;
+         
+        console.log("rendered");
+        return <div>
+                <label>{this.props.propertyName}</label>
+                <input type="text" value={propval ? propval.value : ""} onChange={this.handleChange} ></input>
+            </div>
+    }
 }
 
 @observer export class SceneObjectProperties extends React.Component<IObjectPropertiesProps, IObjectPropertiesState> {
@@ -38,23 +53,31 @@ var defaultScalarPropertyEditor: React.StatelessComponent<EditorProps> = functio
 
     renderPropertyEditor(obj:SceneObject, prop: SceneComponentProperty ) {
         var editorProps:EditorProps = {
-            obj: obj,
+           // obj: obj,
             propertyName: prop.name,
             sceneEditor: this.props.sceneEditor,
-            options: prop.editorOptions
+            options: prop.editorOptions,
+            propertyValue: obj.properties.get(prop.name)
         }
+        
+        var editor 
         
         //TODO some sort of editor lookup
         //fallback to key-value
        if (prop.type == "scalar") {
-           return defaultScalarPropertyEditor(editorProps)
+           editor = <DefaultScalarPropertyEditor {...editorProps}></DefaultScalarPropertyEditor>
        }
+       return <div className="propertyEditor" key={prop.name} >
+                {editor}
+        </div>
     }
     
     renderEditors() {
         //TODO allow multiple sceneObjects
         var components = this.props.sceneEditor.engine.getComponents();
-        var thisObject = this.props.sceneEditor.selected[0];
+        if (this.props.sceneEditor.selected.length > 0) {
+            var thisObject = this.props.sceneEditor.selected[0];
+        }
        if (thisObject) {
             var typeinfo = components.find(x=> x.name == thisObject.type);
             //generate an editor for each typeinfo

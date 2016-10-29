@@ -98,7 +98,7 @@ class BaseEngine implements SceneEngine {
         }
         
         //set prop
-        command.object.properties[command.propertyName] = command.newValue;
+        command.object.properties.set(command.propertyName, command.newValue);
 
         if (command.newValue.kind == "scalar") {
            obj[command.propertyName] = command.newValue.value;
@@ -110,6 +110,7 @@ class BaseEngine implements SceneEngine {
 
     async executeConstructCommand(command: ConstructCommand, sceneTree: SceneTree): Promise<void> {
         sceneTree.append(command.object);
+        //load properties
         var sg = this.sg;
         var parent = command.object.parent ? this.getObject(command.object.parent) : sg;
         parent[command.object.name] =  { type: command.object.type }

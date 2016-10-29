@@ -1,4 +1,4 @@
-import { observable } from 'mobx';
+import { observable, map, ObservableMap } from 'mobx';
 export interface SerializedPropertyValueScalar  {
     kind: 'scalar';
     value: any;
@@ -18,7 +18,7 @@ export class PropertyValueScalar  {
         this.value = value ;
     }
     kind: 'scalar' = 'scalar';
-    value: any;
+    @observable value: any;
     serialize():SerializedPropertyValueScalar {
         return {
             kind: 'scalar',
@@ -46,7 +46,7 @@ export class SceneObjectReference  {
 
 export type SceneObjectPropertyValue = PropertyValueScalar | SceneObjectReference;
 
-export type SceneObjectPropertyValues = { [index: string]: SceneObjectPropertyValue } 
+export type SceneObjectPropertyValues = ObservableMap<SceneObjectPropertyValue> 
 
 export class SceneObject  {
     public name: string; 
@@ -55,7 +55,7 @@ export class SceneObject  {
     //determines instance and editor values
     public type: string; 
   
-    @observable public properties: SceneObjectPropertyValues = {};
+    @observable public properties: SceneObjectPropertyValues = map<SceneObjectPropertyValue>();
     
     public getFullName(): string {
         return this.getParentPrefix() + this.name;
@@ -71,7 +71,7 @@ export class SceneObject  {
             name: this.name,
             parent: this.parent && this.parent.getFullName(),
             type: this.type,
-            properties:  Object.keys(this.properties).reduce((out,key)=> { out[key] = this.properties[key].serialize(); return out } ,{}) 
+            properties: Array.from(this.properties.keys()).reduce((out,key)=> { out[key] = this.properties.get(key).serialize(); return out } ,{}) 
         }
     }
 }

@@ -1,7 +1,7 @@
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { SceneCommand, DeleteCommand, ConstructCommand, PropertySetCommand } from './sceneCommands'
-import { SceneObject } from './sceneObject'
+import { SceneObject, SceneObjectPropertyValue, PropertyValueScalar, SceneObjectReference } from './sceneObject'
 import { Scene, SerializedScene } from './scene'
 import { SceneEngines, SceneEngine } from './sceneEngines'
 import fs = require("fs")
@@ -69,7 +69,7 @@ export class SceneEditor {
     }
 
     private applyToScene(command:SceneCommand) {
-        this.scene.executeCommand(command);
+       this.scene.executeCommand(command);
     }
     
     do(command:SceneCommand) {
@@ -114,7 +114,26 @@ export class SceneEditor {
         this.undostack = [];
     }    
 
-    setPropertyOnSelected(propertyName: string, value: any) {}
+    setScalarOnSelected(propertyName: string, value: any) {
+        this.setPropertyOnSelected(propertyName, new PropertyValueScalar(value));
+    }
+
+    setReferenceOnSelected(propertyName: string, value: SceneObject) {
+        this.setPropertyOnSelected(propertyName, new SceneObjectReference(value));
+    }
+
+    setPropertyOnSelected(propertyName: string, value: SceneObjectPropertyValue) {
+       
+        this.selected.forEach(obj=> {
+            var cmd = new PropertySetCommand();
+            cmd.newValue = value;
+            cmd.oldValue = obj.properties.get(propertyName);
+            cmd.object = obj;
+            cmd.propertyName = propertyName;
+            this.do(cmd);
+        });
+
+    }
     
     createObject(parent: SceneObject, name: string, type: string, args: Array<any>) {
         var obj = new SceneObject();

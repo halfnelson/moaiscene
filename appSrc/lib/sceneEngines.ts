@@ -1,7 +1,7 @@
 import { Scene } from './scene';
 import { SceneCommand, ConstructCommand, DeleteCommand, PropertySetCommand } from './sceneCommands'
 import { SceneComponent } from './sceneComponent'
-import { SceneTree, SceneObject } from './sceneObject'
+import { SceneTree, SceneObject, SceneObjectPropertyValue } from './sceneObject'
 import { SceneEditor } from './sceneEditor'
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -10,7 +10,7 @@ import * as ReactDOM from 'react-dom';
 export interface EditorProps {
     options: { [index: string]: any;   }
     propertyName: string;
-    obj: SceneObject;
+    propertyValue: SceneObjectPropertyValue;
     sceneEditor: SceneEditor;
 }
 
