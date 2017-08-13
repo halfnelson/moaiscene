@@ -1,5 +1,5 @@
 import { Scene } from '../../scene';
-import { SceneEngine, SceneEngines, EditorList } from '../../sceneEngines'
+import { SceneEngine, SceneEngines, EditorList, IPreviewProps, IPreviewState } from '../../sceneEngines'
 import { SceneCommand, ConstructCommand, DeleteCommand, PropertySetCommand } from '../../sceneCommands'
 import { SceneObject, SceneTree } from '../../sceneObject'
 import { SceneComponent } from '../../sceneComponent'
@@ -9,20 +9,12 @@ import * as ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
 import { extendObservable, autorun, observable } from 'mobx';
 
-interface IPreviewProps {
-    sceneEditor: SceneEditor,
-    layoutWidth: number,
-    layoutHeight: number
-}
 
-interface IPreviewState {
-   
-}
 
 @observer
 export class BaseScenePreview extends React.Component<IPreviewProps, IPreviewState> {
 
-    constructor(props: IPreviewProps) {
+    constructor(props: any) {
         super(props);
         this.state = {}
     }
@@ -49,7 +41,7 @@ class BaseEngine implements SceneEngine {
     name: string = "base";
     sg: any = {};
 
-    previewComponent: typeof React.Component = BaseScenePreview;
+    previewComponent: React.ComponentClass<IPreviewProps> = BaseScenePreview;
 
     constructor() {  }
 

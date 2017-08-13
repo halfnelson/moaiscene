@@ -14,6 +14,17 @@ export interface EditorProps {
     sceneEditor: SceneEditor;
 }
 
+
+export interface IPreviewProps {
+    sceneEditor: SceneEditor,
+    layoutWidth: number,
+    layoutHeight: number
+}
+
+export interface IPreviewState {
+   
+}
+
 export type EditorList = { [index: string]: React.StatelessComponent<EditorProps> }
 
 export interface SceneEngine {
@@ -21,7 +32,7 @@ export interface SceneEngine {
     executePropertySetCommand(command: PropertySetCommand, sceneTree: SceneTree): Promise<void>;
     executeConstructCommand(command: ConstructCommand, sceneTree: SceneTree): Promise<void>;
     executeDeleteCommand(command: DeleteCommand, sceneTree: SceneTree): Promise<void>;
-    previewComponent: typeof React.Component;
+    previewComponent: React.ComponentClass<IPreviewProps>;
     getComponents(): Array<SceneComponent>;
     getEditors(): EditorList;
 }

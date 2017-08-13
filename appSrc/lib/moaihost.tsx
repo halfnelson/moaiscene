@@ -175,7 +175,7 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
     }
     render() {
         return (
-            <canvas ref={(ref) => this.moaiCanvas = ref} width={this.props.layoutWidth} height={this.props.layoutHeight} tabIndex="0"></canvas>
+            <canvas ref={(ref) => this.moaiCanvas = ref} width={this.props.layoutWidth} height={this.props.layoutHeight} tabIndex={0} ></canvas>
         );
     }
 }

@@ -4,7 +4,9 @@ import { SceneEditor } from '../sceneEditor'
 import { SceneObject } from '../sceneObject'
 import { observer } from 'mobx-react';
 
-interface IExplorerProps {
+interface IReactProps {}
+
+interface IExplorerProps extends IReactProps {
     sceneEditor: SceneEditor,
 }
 
@@ -30,7 +32,7 @@ interface IExplorerState {
     componentDidMount() { 
 
     }
-    selectNode(obj: SceneObject, event: React.SyntheticEvent) {
+    selectNode(obj: SceneObject, event: React.SyntheticEvent<HTMLElement>) {
         event.stopPropagation();
         //select it
         if (!window['keys']['Control']) { 
@@ -39,7 +41,7 @@ interface IExplorerState {
         this.props.sceneEditor.addToSelection(obj);
     }
 
-    toggleNode(obj: SceneObject, event: React.SyntheticEvent ) {
+    toggleNode(obj: SceneObject, event: React.SyntheticEvent<HTMLElement>) {
         event.stopPropagation();
         if (this.state.expanded.indexOf(obj) > -1) {
             //remove

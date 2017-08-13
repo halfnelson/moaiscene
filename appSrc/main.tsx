@@ -31,7 +31,7 @@ ipcRenderer.on('open-project', function () {
     }*/
 });
 
-class ReactWidget<T extends typeof React.Component> extends Widget {
+class ReactWidget<T extends React.ComponentClass> extends Widget {
     component: T;
     width: number;
     height: number;
