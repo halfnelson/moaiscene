@@ -99,7 +99,7 @@
     "dependency-check": "^2.5",
     "electron-builder": "^3",
     "electron-prebuilt": "^1",
-    "extract-text-webpack-plugin": "^2.0.0-beta.3",
+    "extract-text-webpack-plugin": "^3.0.0",
     "istanbul": "^0.4",
     "less": "^2.7.1",
     "less-loader": "^4.0.5",
