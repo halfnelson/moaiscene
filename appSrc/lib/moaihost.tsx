@@ -1,16 +1,20 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { SceneCommand } from "./sceneCommands";
 
 declare var MoaiJS: any;
 
-const path = require('path');
+const path = require("path");
 
+export type scriptRunner = (script: string) => any;
+export type messageProcessor = (msg: any) => any;
+type engineAttachCallback = (sr: scriptRunner) => messageProcessor;
 
 interface IHostProps {
-    app: any;
+    onAttach?: engineAttachCallback;
     sourcePath: string;
-    layoutWidth: number;
-    layoutHeight: number;
+    layoutWidth?: number;
+    layoutHeight?: number;
 }
 
 interface IHostState {
@@ -23,6 +27,7 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
     moaiCanvas: HTMLCanvasElement;
     moai: any;
     active: boolean;
+    onMessage?: messageProcessor;
     unhookevents: () => void;
 
     constructor(props: IHostProps) {
@@ -31,7 +36,7 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
         this.state = {
             player: null,
             mount: null
-        }
+        };
     }
 
     componentWillUnmount() {
@@ -43,30 +48,35 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
     }
 
     refreshSize(width, height) {
-            this.moai.onReshape(width,height)
-            this.moai.AKURunString('MOAIEnvironment.horizontalResolution = ' +  width);
-            this.moai.AKURunString('MOAIEnvironment.verticalResolution = ' + height);
-            this.moai.AKURunString('refreshViewport()');
+        this.moai.onReshape(width, height);
+        this.moai.AKURunString(
+            "MOAIEnvironment.horizontalResolution = " + width
+        );
+        this.moai.AKURunString(
+            "MOAIEnvironment.verticalResolution = " + height
+        );
+        this.moai.AKURunString("refreshViewport()");
     }
 
     componentWillReceiveProps(nextProps: IHostProps) {
-        if (nextProps.layoutHeight != this.props.layoutHeight ||
-            nextProps.layoutWidth != this.props.layoutWidth) {
-            this.refreshSize(nextProps.layoutWidth, nextProps.layoutHeight)
+        if (
+            nextProps.layoutHeight != this.props.layoutHeight ||
+            nextProps.layoutWidth != this.props.layoutWidth
+        ) {
+            this.refreshSize(nextProps.layoutWidth, nextProps.layoutHeight);
         }
     }
 
     onError(err) {
         console.log("ERROR: ", err);
-    };
+    }
 
     onPrint(x: string) {
         console.log(x);
         if (x.startsWith("MESSAGE:\n")) {
             //deserialize message
-            
         }
-    };
+    }
 
     renderLoop() {
         if (!this.active) return;
@@ -78,14 +88,24 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
     componentDidMount() {
         console.log("creating new player");
 
-        var appDir = path.join(window['appDir'], "lua");
+        var appDir = path.join(window["appDir"], "lua");
 
-        this.moai = new MoaiJS(this.moaiCanvas, 64 * 1024 * 1024, () => { }, () => { }, this.onError.bind(this), this.onPrint.bind(this), () => { });
+        this.moai = new MoaiJS(
+            this.moaiCanvas,
+            64 * 1024 * 1024,
+            () => {},
+            () => {},
+            this.onError.bind(this),
+            this.onPrint.bind(this),
+            () => {}
+        );
         var moai = this.moai;
 
         moai.getEmscripten();
         var emscripten = moai.emscripten;
-        emscripten.SetOpenWindowFunc(() => { return this.moaiCanvas }); //we will handle the canvas from here
+        emscripten.SetOpenWindowFunc(() => {
+            return this.moaiCanvas;
+        }); //we will handle the canvas from here
 
         var canvas = this.moaiCanvas;
 
@@ -99,9 +119,14 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
         var keydown = moai.keydown.bind(moai);
         var keyup = moai.keyup.bind(moai);
         var keypress = moai.keypress.bind(moai);
-        var mouseover = function () { canvas.focus(); }
-        var mouseout = (function () { canvas.blur(); moai.cancelMouseButtons(); }).bind(moai);
-        var contextmenu = function (e) {
+        var mouseover = function() {
+            canvas.focus();
+        };
+        var mouseout = function() {
+            canvas.blur();
+            moai.cancelMouseButtons();
+        }.bind(moai);
+        var contextmenu = function(e) {
             e.preventDefault();
             return false;
         };
@@ -132,50 +157,69 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
             canvas.removeEventListener("keyup", keyup);
             canvas.removeEventListener("keypress", keypress);
             canvas.removeEventListener("contextmenu", contextmenu);
-        }
+        };
 
-
-
-        emscripten.FS_mkdir('/editor');
-        var editor_mount = emscripten.FS_mount(emscripten.FS_filesystems.NODEFS, { root: appDir + "\\" }, '/editor');
-        emscripten.FS_mkdir('/project');
-        var mount = emscripten.FS_mount(emscripten.FS_filesystems.NODEFS, { root: this.props.sourcePath }, '/project');
+        emscripten.FS_mkdir("/editor");
+        var editor_mount = emscripten.FS_mount(
+            emscripten.FS_filesystems.NODEFS,
+            { root: appDir + "\\" },
+            "/editor"
+        );
+        emscripten.FS_mkdir("/project");
+        //  var mount = emscripten.FS_mount(emscripten.FS_filesystems.NODEFS, { root: this.props.sourcePath }, '/project');
         this.setState({
-            editor_mount: editor_mount,
-            mount: mount
-        })
+            editor_mount: editor_mount
+            // mount: mount
+        });
 
         //needs to be done on next turn after emscripten is initialized
-        window.setTimeout(function () {
-            console.log("MoaiJS Filesystem Loaded");
-            this.moai.emscripten.run();
-            this.moai.restoreDocumentDirectory();
+        window.setTimeout(
+            function() {
+                console.log("MoaiJS Filesystem Loaded");
+                this.moai.emscripten.run();
+                this.moai.restoreDocumentDirectory();
 
-            this.moai.hostinit();
-            
-            this.moai.AKUSetWorkingDirectory('/editor');
-            this.moai.AKURunScript("main.lua");
-            this.refreshSize(this.props.layoutWidth, this.props.layoutHeight);
+                this.moai.hostinit();
 
-            //player.moai.pause();
-            //player.moai.updateloop();
-            //now start rendering and updationg
-            moai.startUpdates();
-            this.active = true;
-            
-            emscripten.requestAnimationFrame(this.renderLoop.bind(this));
+                this.moai.AKUSetWorkingDirectory("/editor");
+                this.moai.AKURunScript("main.lua");
+                this.refreshSize(
+                    this.props.layoutWidth,
+                    this.props.layoutHeight
+                );
 
-        }.bind(this), 0);
+                //player.moai.pause();
+                //player.moai.updateloop();
+                //now start rendering and updationg
+                moai.startUpdates();
+                this.active = true;
 
-        this.props.app.moai = moai;
+                emscripten.requestAnimationFrame(this.renderLoop.bind(this));
+
+                if (this.props.onAttach) {
+                    this.onMessage = this.props.onAttach(function(
+                        script: string
+                    ) {
+                        console.log("run string:", script);
+                    });
+                    this.onMessage("Hi from moai host");
+                }
+            }.bind(this),
+            0
+        );
+
+        // this.props.app.moai = moai;
     }
 
-    toggle() {
-
-    }
+    toggle() {}
     render() {
         return (
-            <canvas ref={(ref) => this.moaiCanvas = ref} width={this.props.layoutWidth} height={this.props.layoutHeight} tabIndex={0} ></canvas>
+            <canvas
+                ref={ref => (this.moaiCanvas = ref)}
+                width={this.props.layoutWidth}
+                height={this.props.layoutHeight}
+                tabIndex={0}
+            />
         );
     }
 }

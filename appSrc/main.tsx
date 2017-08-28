@@ -17,6 +17,7 @@ import { ResizeMessage, Widget } from 'phosphor-widget';
 
 import { SceneEditor } from './lib/sceneEditor';
 import './lib/engines/base/baseEngine';
+import './lib/engines/moai/moaiEngine';
 
 //declare var window: Window;
 require('./less/styles.less');
@@ -70,7 +71,7 @@ function createContent(title: string): Widget {
 }
 
 async function loadMockScene(editor: SceneEditor) {
-    await editor.loadNewScene("base");
+    await editor.loadNewScene("moai");
     
 }
 
@@ -150,3 +151,5 @@ window.onkeyup = function(e) {window['keys'][e.key]=false;}
 window.onkeydown = function(e) {
     window['keys'][e.key]=true;
 }
+
+console.log('web assembly', window['WebAssembly']);

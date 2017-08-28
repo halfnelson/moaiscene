@@ -45,7 +45,8 @@
     "build:lin32": "build --platform=linux --arch=ia32 -d",
     "build:lin64": "build --platform=linux --arch=x64 -d",
     "build": "build --platform=all --arch=all -d",
-    "postinstall": "install-app-deps"
+    "postinstall": "install-app-deps",
+    "watch": "webpack --watch"
   },
   "standard": {
     "globals": [
@@ -98,7 +99,7 @@
     "css-loader": "^0.28.4",
     "dependency-check": "^2.5",
     "electron-builder": "^3",
-    "electron-prebuilt": "^1",
+    "electron": "~1.7.5",
     "extract-text-webpack-plugin": "^3.0.0",
     "istanbul": "^0.4",
     "less": "^2.7.1",
