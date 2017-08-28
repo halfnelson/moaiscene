@@ -16,45 +16,24 @@ import { SceneComponent } from "../../sceneComponent";
 import { observer } from "mobx-react";
 import { MoaiHost, scriptRunner, messageProcessor } from "../../moaihost";
 
-@observer
-export class MoaiScenePreview extends React.Component<
-    IPreviewProps,
-    IPreviewState
-> {
-    constructor(props: any) {
-        super(props);
-        this.state = {};
-    }
-
-    componentWillUnmount() {}
-
-    componentWillReceiveProps(nextProps: IPreviewProps) {}
-
-    componentDidMount() {}
-
-    render() {
-        // var dummy = this.props.sceneEditor.scene.changeLog.length;
-        return (
-            <MoaiHost
-                sourcePath={"lua"}
-                layoutWidth={this.props.layoutWidth}
-                layoutHeight={this.props.layoutHeight}
-                onAttach={(this.props.sceneEditor
-                    .engine as MoaiEngine).onAttach.bind(this)}
-            />
-        );
-    }
-}
-
 class MoaiEngine implements SceneEngine {
     name: string = "moai";
     sg: any = {};
 
     runMoaiScript?: scriptRunner;
 
-    previewComponent: React.ComponentClass<IPreviewProps> = MoaiScenePreview;
+    previewComponent: React.ComponentClass<
+    IPreviewProps
+    > = observer((props: IPreviewProps) =>
+        <MoaiHost
+            sourcePath={"lua"}
+            layoutWidth={props.layoutWidth}
+            layoutHeight={props.layoutHeight}
+            onAttach={this.onAttach.bind(this)}
+        />
+    );
 
-    constructor() {}
+    constructor() { }
 
     private getObject(o: SceneObject): any {
         if (o.parent) {
@@ -68,7 +47,7 @@ class MoaiEngine implements SceneEngine {
         //todo: flush scenegraph to runner.
         this.runMoaiScript = runner;
         runner("print('hi from preview')");
-        return function(msg: any) {
+        return function (msg: any) {
             console.log("got message", msg);
         };
     }
@@ -158,22 +137,7 @@ class MoaiEngine implements SceneEngine {
     }
 
     getComponents(): Array<SceneComponent> {
-        return [
-            {
-                name: "Circle",
-                properties: [
-                    { name: "radius", type: "scalar" },
-                    { name: "location", type: "scalar" }
-                ]
-            },
-            {
-                name: "Square",
-                properties: [
-                    { name: "sideLength", type: "scalar" },
-                    { name: "location", type: "scalar" }
-                ]
-            }
-        ];
+        return [];
     }
 
     getEditors(): EditorList {

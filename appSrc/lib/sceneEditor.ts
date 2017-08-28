@@ -13,8 +13,14 @@ import {
     SceneObjectReference
 } from "./sceneObject";
 import { Scene, SerializedScene } from "./scene";
-import { SceneEngines, SceneEngine } from "./sceneEngines";
+import { SceneEngines, SceneEngine, IPreviewProps } from "./sceneEngines";
 import fs = require("fs");
+import { SceneComponent } from "./sceneComponent";
+
+import "./engines/base/baseEngine";
+import "./engines/moai/moaiEngine";
+
+
 
 class BulkActionCommand {
     kind: "bulk";
@@ -23,7 +29,7 @@ class BulkActionCommand {
 
 export class SceneEditor {
     scenepath: string;
-    @observable engine: SceneEngine;
+    @observable private engine: SceneEngine;
     @observable scene: Scene;
     @observable selected: Array<SceneObject> = [];
 
@@ -57,6 +63,14 @@ export class SceneEditor {
         var scene = await this.newSceneFromType(serializedScene.engine);
         await scene.load(serializedScene);
         return Promise.resolve(scene);
+    }
+
+    public getComponents(): SceneComponent[] {
+        return this.engine.getComponents();
+    }
+
+    public getPreviewComponent(): React.ComponentClass<IPreviewProps> {
+        return this.engine.previewComponent;
     }
 
     private beginBulkAction() {
@@ -171,9 +185,9 @@ export class SceneEditor {
         this.do(cmd);
     }
 
-    deleteObject(obj: SceneObject) {}
+    deleteObject(obj: SceneObject) { }
 
-    addInitializeScripts(scripts: Array<string>) {}
+    addInitializeScripts(scripts: Array<string>) { }
 
     addToSelection(obj: SceneObject) {
         this.selected.push(obj);
@@ -191,8 +205,8 @@ export class SceneEditor {
         return this.scene.objectByName(name);
     }
 
-    saveAs(path: string) {}
-    save() {}
+    saveAs(path: string) { }
+    save() { }
 
-    closeScene() {}
+    closeScene() { }
 }

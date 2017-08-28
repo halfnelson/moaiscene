@@ -1,53 +1,68 @@
-import { Scene } from './scene';
-import { SceneCommand, ConstructCommand, DeleteCommand, PropertySetCommand } from './sceneCommands'
-import { SceneComponent } from './sceneComponent'
-import { SceneTree, SceneObject, SceneObjectPropertyValue } from './sceneObject'
-import { SceneEditor } from './sceneEditor'
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-
+import { Scene } from "./scene";
+import {
+    SceneCommand,
+    ConstructCommand,
+    DeleteCommand,
+    PropertySetCommand
+} from "./sceneCommands";
+import { SceneComponent } from "./sceneComponent";
+import {
+    SceneTree,
+    SceneObject,
+    SceneObjectPropertyValue
+} from "./sceneObject";
+import { SceneEditor } from "./sceneEditor";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 
 export interface EditorProps {
-    options: { [index: string]: any;   }
+    options: { [index: string]: any };
     propertyName: string;
     propertyValue: SceneObjectPropertyValue;
     sceneEditor: SceneEditor;
 }
 
-
 export interface IPreviewProps {
-    sceneEditor: SceneEditor,
-    layoutWidth: number,
-    layoutHeight: number
+    sceneEditor: SceneEditor;
+    layoutWidth: number;
+    layoutHeight: number;
 }
 
-export interface IPreviewState {
-   
-}
+export interface IPreviewState {}
 
-export type EditorList = { [index: string]: React.StatelessComponent<EditorProps> }
+export type EditorList = {
+    [index: string]: React.StatelessComponent<EditorProps>;
+};
 
 export interface SceneEngine {
     name: string;
-    executePropertySetCommand(command: PropertySetCommand, sceneTree: SceneTree): Promise<void>;
-    executeConstructCommand(command: ConstructCommand, sceneTree: SceneTree): Promise<void>;
-    executeDeleteCommand(command: DeleteCommand, sceneTree: SceneTree): Promise<void>;
+    executePropertySetCommand(
+        command: PropertySetCommand,
+        sceneTree: SceneTree
+    ): Promise<void>;
+    executeConstructCommand(
+        command: ConstructCommand,
+        sceneTree: SceneTree
+    ): Promise<void>;
+    executeDeleteCommand(
+        command: DeleteCommand,
+        sceneTree: SceneTree
+    ): Promise<void>;
     previewComponent: React.ComponentClass<IPreviewProps>;
+    //renderPreview(props: IPreviewProps): JSX.Element;
     getComponents(): Array<SceneComponent>;
     getEditors(): EditorList;
 }
 
-class EngineManager { 
-
-    private engines: {[index: string]: () => Promise<SceneEngine> } = {}
+class EngineManager {
+    private engines: { [index: string]: () => Promise<SceneEngine> } = {};
 
     registerEngine(name: string, engine: () => Promise<SceneEngine>) {
         this.engines[name] = engine;
     }
 
     engineByName(name: string): Promise<SceneEngine> {
-        return this.engines[name]()
+        return this.engines[name]();
     }
-
 }
 export var SceneEngines: EngineManager = new EngineManager();

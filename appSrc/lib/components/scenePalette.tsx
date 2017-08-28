@@ -1,41 +1,46 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import { SceneEditor } from '../sceneEditor'
-import { SceneObject } from '../sceneObject'
-import { observer } from 'mobx-react';
-import { SceneComponent } from '../sceneComponent';
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { SceneEditor } from "../sceneEditor";
+import { SceneObject } from "../sceneObject";
+import { observer } from "mobx-react";
+import { SceneComponent } from "../sceneComponent";
 
 interface IPaletteProps {
-    sceneEditor: SceneEditor,
+    sceneEditor: SceneEditor;
 }
 
-interface IPaletteState {
-    
-}
+interface IPaletteState {}
 
-@observer export class ScenePalette extends React.Component<IPaletteProps, IPaletteState> {
-
+@observer
+export class ScenePalette extends React.Component<
+    IPaletteProps,
+    IPaletteState
+> {
     constructor(props: IPaletteProps) {
         super(props);
-        this.state = {}
+        this.state = {};
     }
 
-    componentWillUnmount() { }
+    componentWillUnmount() {}
 
-    componentWillReceiveProps(nextProps: IPaletteProps) { }
+    componentWillReceiveProps(nextProps: IPaletteProps) {}
 
-    componentDidMount() { }
+    componentDidMount() {}
 
     getComponents() {
-        return this.props.sceneEditor.engine.getComponents();
+        return this.props.sceneEditor.getComponents();
     }
 
     render() {
-        return <div>
-            <h1>Palette</h1>
-            <pre><code>
-                { JSON.stringify(this.getComponents(),null,2) }
-            </code></pre>
-            </div>            
+        return (
+            <div>
+                <h1>Palette</h1>
+                <pre>
+                    <code>
+                        {JSON.stringify(this.getComponents(), null, 2)}
+                    </code>
+                </pre>
+            </div>
+        );
     }
 }
