@@ -47,7 +47,7 @@ end
 function Scene:resolveName(entity)
   local name = entity.name or "unnamed"
   if entity.parent then
-    return resolveName(entity.parent).."."..name
+    return self:resolveName(entity.parent).."."..name
   else
     return name
   end

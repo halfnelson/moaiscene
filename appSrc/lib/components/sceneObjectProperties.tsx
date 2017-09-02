@@ -10,12 +10,12 @@ interface IObjectPropertiesProps {
     sceneEditor: SceneEditor;
 }
 
-interface IObjectPropertiesState {}
+interface IObjectPropertiesState { }
 
 @observer
 export class DefaultScalarPropertyEditor extends React.Component<
-    EditorProps,
-    {}
+EditorProps,
+{}
 > {
     constructor(props: EditorProps) {
         super(props);
@@ -33,8 +33,6 @@ export class DefaultScalarPropertyEditor extends React.Component<
 
     render() {
         var propval = this.props.propertyValue;
-
-        console.log("rendered");
         return (
             <div>
                 <label>
@@ -52,19 +50,19 @@ export class DefaultScalarPropertyEditor extends React.Component<
 
 @observer
 export class SceneObjectProperties extends React.Component<
-    IObjectPropertiesProps,
-    IObjectPropertiesState
+IObjectPropertiesProps,
+IObjectPropertiesState
 > {
     constructor(props: IObjectPropertiesProps) {
         super(props);
         this.state = {};
     }
 
-    componentWillUnmount() {}
+    componentWillUnmount() { }
 
-    componentWillReceiveProps(nextProps: IObjectPropertiesProps) {}
+    componentWillReceiveProps(nextProps: IObjectPropertiesProps) { }
 
-    componentDidMount() {}
+    componentDidMount() { }
 
     renderPropertyEditor(obj: SceneObject, prop: SceneComponentProperty) {
         var editorProps: EditorProps = {

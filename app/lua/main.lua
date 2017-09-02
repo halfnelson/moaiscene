@@ -3,8 +3,8 @@
 --editor bootstrap
 
 
-local windowWidth = 300 --MOAIEnvironment.horizontalResolution or 300
-local windowHeight = 300 --MOAIEnvironment.verticalResolution or 300
+local windowWidth = MOAIEnvironment.horizontalResolution or 300
+local windowHeight = MOAIEnvironment.verticalResolution or 300
 MOAISim.openWindow ( "test", windowWidth, windowHeight ) --needed but doesn't do anything now
 
 
@@ -99,18 +99,26 @@ end
 MOAIInputMgr.device.keyboard:setKeyCallback(function(keycode,down) print("keycall",keycode,down) end)
 
 local PropClick = LeftMouseDown:map(function(down, x, y) 
-    return scene:propForPoint(x,y) 
+    return scene:propForPoint(x,y)
   end)
      
 local Drags = LeftMouseDown:flatMap(function() return MouseDeltas:takeUntil(LeftMouseUp) end)
          
 
 PropClick:subscribe(function(prop, layer) 
+    print("gotpropclick", prop, layer)
+    print("prop",scene:resolveName(prop))
+    print("layer",scene:resolveName(layer))
       print("selected",scene:resolveName(prop),scene:resolveName(layer))
       Editor:select(prop, layer) 
       prop:moveRot(45,3)
       prop:moveScl(0.5,0.5,3)
-    end)
+    end,
+    function(err) 
+        print("error in propclick",err)
+    end
+    
+    )
 
 print("hello from editor")
 

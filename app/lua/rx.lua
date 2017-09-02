@@ -143,12 +143,17 @@ function Observable.throw(message)
   end)
 end
 
---- Creates an Observable that produces a single value.
--- @arg {*} value
+--- Creates an Observable that produces a set of values.
+-- @arg {*...} values
 -- @returns {Observable}
-function Observable.fromValue(value)
+function Observable.of(...)
+  local args = {...}
+  local argCount = select('#', ...)
   return Observable.create(function(observer)
-    observer:onNext(value)
+    for i = 1, argCount do
+      observer:onNext(args[i])
+    end
+
     observer:onCompleted()
   end)
 end
@@ -192,11 +197,14 @@ function Observable.fromTable(t, iterator, keys)
 end
 
 --- Creates an Observable that produces values when the specified coroutine yields.
--- @arg {thread} coroutine
+-- @arg {thread|function} fn - A coroutine or function to use to generate values.  Note that if a
+--                             coroutine is used, the values it yields will be shared by all
+--                             subscribed Observers (influenced by the Scheduler), whereas a new
+--                             coroutine will be created for each Observer when a function is used.
 -- @returns {Observable}
-function Observable.fromCoroutine(thread, scheduler)
-  thread = type(thread) == 'function' and coroutine.create(thread) or thread
+function Observable.fromCoroutine(fn, scheduler)
   return Observable.create(function(observer)
+    local thread = type(fn) == 'function' and coroutine.create(fn) or fn
     return scheduler:schedule(function()
       while not observer.stopped do
         local success, value = coroutine.resume(thread)
@@ -214,6 +222,26 @@ function Observable.fromCoroutine(thread, scheduler)
         coroutine.yield()
       end
     end)
+  end)
+end
+
+--- Creates an Observable that produces values from a file, line by line.
+-- @arg {string} filename - The name of the file used to create the Observable
+-- @returns {Observable}
+function Observable.fromFileByLine(filename)
+  return Observable.create(function(observer)
+    local f = io.open(filename, 'r')
+    if f
+    then
+      f:close()
+      for line in io.lines(filename) do
+        observer:onNext(line)
+      end
+
+      return observer:onCompleted()
+    else
+      return observer:onError(filename)
+    end
   end)
 end
 
@@ -1837,21 +1865,25 @@ end
 function CooperativeScheduler:update(delta)
   self.currentTime = self.currentTime + (delta or 0)
 
-  for i = #self.tasks, 1, -1 do
+  local i = 1
+  while i <= #self.tasks do
     local task = self.tasks[i]
 
     if self.currentTime >= task.due then
       local success, delay = coroutine.resume(task.thread)
 
-      if success then
-        task.due = math.max(task.due + (delay or 0), self.currentTime)
-      else
-        error(delay)
-      end
-
       if coroutine.status(task.thread) == 'dead' then
         table.remove(self.tasks, i)
+      else
+        task.due = math.max(task.due + (delay or 0), self.currentTime)
+        i = i + 1
       end
+
+      if not success then
+        error(delay)
+      end
+    else
+      i = i + 1
     end
   end
 end
