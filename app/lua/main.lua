@@ -84,6 +84,9 @@ MousePos = rx.Subject.create()
 function onMouseMoveEvent( x, y )
     MousePos:onNext( x, y )
 end
+
+
+
 MOAIInputMgr.device.pointer:setCallback( onMouseMoveEvent )
 
 LeftMouseDown = LeftMouse:filter(function(down) return down end)
@@ -100,7 +103,7 @@ MOAIInputMgr.device.keyboard:setKeyCallback(function(keycode,down) print("keycal
 
 local PropClick = LeftMouseDown:map(function(down, x, y) 
     return scene:propForPoint(x,y)
-  end)
+  end):compact()
      
 local Drags = LeftMouseDown:flatMap(function() return MouseDeltas:takeUntil(LeftMouseUp) end)
          
@@ -117,8 +120,7 @@ PropClick:subscribe(function(prop, layer)
     function(err) 
         print("error in propclick",err)
     end
-    
-    )
+)
 
 print("hello from editor")
 
