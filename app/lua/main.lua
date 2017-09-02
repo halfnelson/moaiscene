@@ -80,6 +80,18 @@ function onMouseLeftEvent ( down )
 end
 MOAIInputMgr.device.mouseLeft:setCallback ( onMouseLeftEvent )
 
+
+RightMouse = rx.Subject.create()
+function onMouseRightEvent ( down )
+    local x, y = MOAIInputMgr.device.pointer:getLoc()
+    RightMouse:onNext( down, x, y  )
+end
+MOAIInputMgr.device.mouseRight:setCallback ( onMouseRightEvent )
+
+RightMouse:subscribe(function(down,x,y)
+    print("right mouse",down,x,y)
+end)
+
 MousePos = rx.Subject.create()
 function onMouseMoveEvent( x, y )
     MousePos:onNext( x, y )
@@ -92,8 +104,19 @@ MOAIInputMgr.device.pointer:setCallback( onMouseMoveEvent )
 LeftMouseDown = LeftMouse:filter(function(down) return down end)
 LeftMouseUp = LeftMouse:filter(function(down) return not down end)
 
+RightMouseDown = RightMouse:filter(function(down) return down end)
+RightMouseUp = RightMouse:filter(function(up) return not down end)
 
 MouseDeltas = MousePos:pack():skip(1):zip(MousePos:pack()):map(function(newpos, oldpos) return newpos[1] - oldpos[1], newpos[2] - oldpos[2] end)
+
+local RightMouseDrag = RightMouseDown:flatMap(function() return MouseDeltas:takeUntil(RightMouseUp) end)
+
+RightMouseDrag:subscribe(function(dx,dy) 
+    Editor:panView(dx,dy)
+end)
+
+
+
 
 local function checkKey ( key )
   return MOAIInputMgr.device.keyboard:keyIsDown( key )

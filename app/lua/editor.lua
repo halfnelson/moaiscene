@@ -45,6 +45,10 @@ function Editor:resize(width, height)
     self.viewport:setScale ( width,  height )
 end
 
+function Editor:panView(dx,dy)
+  self.camera:moveLoc(-dx, dy, 0)
+end
+
 
 function Editor:select(prop, layer) 
   
