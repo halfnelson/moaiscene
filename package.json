@@ -1,16 +1,16 @@
 {
-  "name": "skelectron",
-  "description": "Unofficial Electron Template Application",
-  "version": "0.0.2",
+  "name": "moaiscene",
+  "description": "A 2D Scene editor for MOAI",
+  "version": "0.0.1",
   "author": {
-    "name": "Vito Tardia / BZ Coding",
-    "email": "vito@bzcoding.com",
-    "url": "https://bzcoding.com/"
+    "name": "David Pershouse",
+    "email": "dpershouse@gmail.com",
+    "url": "https://moaiforge.com/"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BZCoding/SkelEktron.git"
+    "url": "https://github.com/moaiforge/moaiscene.git"
   },
   "main": "main.js",
   "scripts": {
@@ -25,26 +25,26 @@
     "clean:osx": "rimraf dist/darwin-x64",
     "clean:win": "rimraf dist/win",
     "clean": "npm run clean:linux && npm run clean:win && npm run clean:osx",
-    "pack:osx": "build --platform=darwin",
+    "pack:osx": "build --mac --x64",
     "pack:win": "npm run pack:win64 && npm run pack:win32",
-    "pack:win32": "build --platform=win32 --arch=ia32",
-    "pack:win64": "build --platform=win32 --arch=x64",
+    "pack:win32": "build --win --ia32",
+    "pack:win64": "build --win --x64",
     "pack:linux": "npm run pack:lin64 && npm run pack:lin32",
-    "pack:lin32": "build --platform=linux --arch=ia32",
-    "pack:lin64": "build --platform=linux --arch=x64",
-    "pack": "build --platform=all --arch=all",
+    "pack:lin32": "build --linux --ia32",
+    "pack:lin64": "build --linux --x64",
+    "pack": "build --linux --mac --win --x64 --ia32",
     "prebuild": "webpack && node build/target.js",
     "postbuild": "node build/target.js --clean",
     "prebuild:osx": "npm run prebuild",
     "postbuild:osx": "npm run postbuild",
-    "build:osx": "build --platform=darwin -d",
+    "build:osx": "build --mac --x64 --draft",
     "build:win": "npm run build:win64 && npm run build:win32",
-    "build:win32": "build --platform=win32 --arch=ia32 -d",
-    "build:win64": "build --platform=win32 --arch=x64 -d",
-    "build:linux": "npm run build:lin64 && npm run build:lin32 -d",
-    "build:lin32": "build --platform=linux --arch=ia32 -d",
-    "build:lin64": "build --platform=linux --arch=x64 -d",
-    "build": "build --platform=all --arch=all -d",
+    "build:win32": "build --win --ia32 --draft",
+    "build:win64": "build --win --x64 --draft",
+    "build:linux": "npm run build:lin64 && npm run build:lin32",
+    "build:lin32": "build --linux --ia32 --draft",
+    "build:lin64": "build --linux --x64 --draft",
+    "build": "build --linux --mac --win --x64 --ia32 --draft",
     "postinstall": "install-app-deps",
     "watch": "webpack --watch"
   },
@@ -69,27 +69,13 @@
     "electron"
   ],
   "build": {
-    "app-bundle-id": "skelektron",
-    "app-category-type": "public.app-category.business",
-    "osx": {
-      "title": "SkelEktron",
-      "icon-size": 120,
-      "contents": [
-        {
-          "x": 478,
-          "y": 170,
-          "type": "link",
-          "path": "/Applications"
-        },
-        {
-          "x": 130,
-          "y": 170,
-          "type": "file"
-        }
-      ]
+    "appId": "com.moaiforge.moaiscene",
+    "productName": "MoaiScene",
+    "dmg": {
+      "iconSize": 120
     },
-    "win": {
-      "msi": false
+    "mac": {
+      "category": "public.app-category.developer-tools"
     }
   },
   "devDependencies": {
@@ -98,7 +84,7 @@
     "chai-as-promised": "5.3.0",
     "css-loader": "^0.28.4",
     "dependency-check": "^2.5",
-    "electron-builder": "^3",
+    "electron-builder": "^19.27.3",
     "electron": "~1.7.5",
     "extract-text-webpack-plugin": "^3.0.0",
     "istanbul": "^0.4",
