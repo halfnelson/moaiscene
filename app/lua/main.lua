@@ -17,8 +17,8 @@ local scene = Scene.create()
 
 -- one main gui viewport
 function refreshViewport()
-   print("resizing", MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution)
-   Editor:resize(windowWidth, windowHeight)
+   print("resizing",MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution )
+   Editor:resize(MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution)
 end
 
 refreshViewport()
