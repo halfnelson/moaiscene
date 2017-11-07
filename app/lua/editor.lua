@@ -125,7 +125,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
   	renderGrid(pos, fragColor.rgb);
 }
 """
-
+--from https://www.shadertoy.com/view/MtlcWX
 
 
 return Editor
