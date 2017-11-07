@@ -17,7 +17,9 @@ local scene = Scene.create()
 
 -- one main gui viewport
 function refreshViewport()
-   print("resizing",MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution )
+   --print("resizing",MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution )
+   local w,h = MOAIGfxDevice.getViewSize();
+   print("resizing",MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution," current:", w,h )
    Editor:resize(MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution)
 end
 
@@ -38,14 +40,14 @@ gfxQuad.name = "TestQuad"
 scene:addDeck(gfxQuad)
 
 
-local sceneViewport = MOAIViewport.new()
-sceneViewport:setSize (windowWidth,  windowHeight )
-sceneViewport:setScale ( windowWidth ,  windowHeight)
-scene:addViewport(sceneViewport)
+--local sceneViewport = MOAIViewport.new()
+--sceneViewport:setSize (windowWidth,  windowHeight )
+--sceneViewport:setScale ( windowWidth ,  windowHeight)
+--scene:addViewport(sceneViewport)
 
 local layer = MOAILayer2D.new ()
 layer.name = "Main"
-layer:setViewport ( sceneViewport )
+layer:setViewport ( Editor.viewport )
 layer:setCamera( Editor.camera )
 
 scene:addLayer(layer)
