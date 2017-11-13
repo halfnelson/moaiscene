@@ -88,7 +88,14 @@ function Editor:select(prop, layer)
   table.insert(self.selection, prop)
 end
 
-local GridShader = """
+local NullVertexShader = [[
+    attribute vec4 position;
+    void main () {
+      gl_Position = position;
+    }
+]]
+
+local GridShader = [[
 
 void stroke(float dist, vec3 color, inout vec3 fragColor, float thickness, float aa)
 {
@@ -124,7 +131,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     fragColor.a = 1.0;
   	renderGrid(pos, fragColor.rgb);
 }
-"""
+]]
 --from https://www.shadertoy.com/view/MtlcWX
 
 

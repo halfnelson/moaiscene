@@ -15,8 +15,10 @@ import { ReactWidget } from "./lib/reactWidget";
 require("./less/styles.less");
 
 
-
 function main() {
+    const {webFrame} = require('electron')
+    webFrame.registerURLSchemeAsPrivileged('file')
+    
     var app = {};
     window["app"] = app;
 
