@@ -82,9 +82,11 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
 
     renderLoop() {
         if (!this.active) return;
-        this.moai.onPaint();
+        this.moai.onPaint(); 
         const renderloop = this.renderLoop.bind(this);
-        this.moai.emscripten.requestAnimationFrame(renderloop);
+        this.moai.getEmscripten().then(function(emscripten) { 
+            emscripten.requestAnimationFrame(renderloop)
+        }.bind(this));
     }
 
     initEmscripten(emscripten) {

@@ -402,8 +402,8 @@ MoaiJS.prototype.getEmscripten = function() {
             onRuntimeInitialized: function() { console.log("got runtime init resolving"); wasmLoaded.resolve(); },
           //  TOTAL_MEMORY: this.total_memory,
          //   wasmBinaryFile: this.wasmfile,
-            instantiateWasm: instantiateWasm
-
+            instantiateWasm: instantiateWasm,
+            ENVIRONMENT: "NODE"
     	};
 	console.log("MoaiJS Emscripten Init");
 	var em = window.CreateMoaiRuntime(Opts);
