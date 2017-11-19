@@ -2,9 +2,11 @@
 --local u = require('tableutil')
 --editor bootstrap
 
+--local mdbug = require("mobdebug")
 
-local windowWidth = MOAIEnvironment.horizontalResolution or 300
-local windowHeight = MOAIEnvironment.verticalResolution or 300
+io.stdout:setvbuf('no') 
+local windowWidth = 640 --MOAIEnvironment.horizontalResolution or 300
+local windowHeight = 480 -- MOAIEnvironment.verticalResolution or 300
 MOAISim.openWindow ( "test", windowWidth, windowHeight ) --needed but doesn't do anything now
 
 
@@ -18,21 +20,22 @@ local scene = Scene.create()
 -- one main gui viewport
 function refreshViewport()
    --print("resizing",MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution )
-   local w,h = MOAIGfxDevice.getViewSize();
-   print("resizing",MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution," current:", w,h )
-   Editor:resize(MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution)
+  local w,h = MOAIGfxMgr.getViewSize();
+  print("resizing",MOAIEnvironment.verticalResolution, MOAIEnvironment.horizontalResolution," current:", w,h )
+  -- Editor:resize(MOAIEnvironment.horizontalResolution, MOAIEnvironment.verticalResolution)
+  Editor:resize(640, 480)
 end
 
 refreshViewport()
 
-MOAIRenderMgr.setRenderTable({
+MOAIRenderMgr.setRender({
     scene.layers,
     Editor.layer
 })
 
 
 
-local gfxQuad = MOAIGfxQuad2D.new ()
+local gfxQuad = MOAISpriteDeck2D.new ()
 gfxQuad:setTexture ( "moai.png" )
 gfxQuad:setRect ( -64, -64, 64, 64 )
 gfxQuad.name = "TestQuad"
@@ -45,19 +48,18 @@ scene:addDeck(gfxQuad)
 --sceneViewport:setScale ( windowWidth ,  windowHeight)
 --scene:addViewport(sceneViewport)
 
-local layer = MOAILayer2D.new ()
+local layer = MOAIPartitionViewLayer.new ()
 layer.name = "Main"
 layer:setViewport ( Editor.viewport )
 layer:setCamera( Editor.camera )
 
 scene:addLayer(layer)
 
-local prop = MOAIProp2D.new ()
+local prop = MOAIGraphicsProp.new ()
 prop:setDeck ( gfxQuad )
 prop.name = "prop1"
 prop.parent = layer
-
-layer:insertProp ( prop )
+prop:setPartition( layer )
 
 scene:addProp(prop)
 
@@ -65,7 +67,7 @@ rx = require('rx')
 
 --rx setup
 local Scheduler = rx.CooperativeScheduler.create(0)
-local schedulerThread = MOAICoroutine:new()
+local schedulerThread = MOAICoroutine.new()
 local lastStep = MOAISim:getElapsedTime()
 
 schedulerThread:run(function() 
@@ -137,10 +139,10 @@ PropClick:subscribe(function(prop, layer)
     print("gotpropclick", prop, layer)
     print("prop",scene:resolveName(prop))
     print("layer",scene:resolveName(layer))
-      print("selected",scene:resolveName(prop),scene:resolveName(layer))
-      Editor:select(prop, layer) 
-      prop:moveRot(45,3)
-      prop:moveScl(0.5,0.5,3)
+    print("selected",scene:resolveName(prop),scene:resolveName(layer))
+    Editor:select(prop, layer) 
+    prop:moveRot(0,0,45,3)
+    prop:moveScl(0.5,0.5,0.0, 3)
     end,
     function(err) 
         print("error in propclick",err)

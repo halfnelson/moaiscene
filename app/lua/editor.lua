@@ -2,8 +2,8 @@ local u = require('tableutil')
 
 Editor = {
   viewport = MOAIViewport.new (),
-  camera = MOAICamera2D.new (),
-  layer = MOAILayer2D.new(),
+  camera = MOAICamera.new (),
+  layer = MOAIPartitionViewLayer.new(),
   selection = {}
 }
 Editor.layer:setViewport(Editor.viewport)
@@ -57,13 +57,14 @@ function Editor:select(prop, layer)
   pin:setNodeLink( prop )
   
   
-  local selectionProp = MOAIProp2D.new()
+  local selectionProp = MOAIGraphicsProp.new()
   selectionProp:setAttrLink(MOAITransform.INHERIT_LOC, pin, MOAITransform.TRANSFORM_TRAIT)
   selectionProp:setAttrLink(MOAITransform.ATTR_Z_ROT, prop, MOAITransform.ATTR_Z_ROT)
   
   
-  local scriptdeck = MOAIScriptDeck.new()
-  scriptdeck:setRect(0,0,1,1) --not sure why this is needed for scriptdeck? does it help with font or something?
+  local scriptdeck = MOAIDrawDeck.new()
+  scriptdeck:setBounds()
+  --scriptdeck:setRect(0,0,1,1) --not sure why this is needed for scriptdeck? does it help with font or something?
   
   scriptdeck:setDrawCallback(function() 
         -- Find our props rect on our gui layer
@@ -73,7 +74,7 @@ function Editor:select(prop, layer)
         x2,y2,z2 = selectionProp:worldToModel(x2, y2, z2)
         x3,y3,z3 = selectionProp:worldToModel(x3, y3, z3)
         -- box it
-        MOAIGfxDevice.setPenColor(0.8, 0, 0.8, 0.8)
+        MOAIDraw.setPenColor(0.8, 0, 0.8, 0.8)
         local width = 2
         MOAIDraw.fillRect(x0-width, y0, x1+width, y1-width)
         MOAIDraw.fillRect(x1, y1-width, x2+width, y2+width)
@@ -82,8 +83,7 @@ function Editor:select(prop, layer)
       end)
   
   selectionProp:setDeck(scriptdeck)
-  
-  self.layer:insertProp(selectionProp)
+  selectionProp:setPartition(self.layer)
  
   table.insert(self.selection, prop)
 end

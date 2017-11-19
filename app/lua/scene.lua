@@ -38,7 +38,7 @@ function Scene:propForPoint(x,y)
   --search all layers
   for _,layer in ipairs(self.layers) do
     local mx,my = layer:wndToWorld(x,y)
-    local p = layer:getPartition():propForPoint(mx,my)
+    local p = layer:getLayerPartition():hullForPoint(mx,my)
     if p then return p, layer end
   end
   return false
