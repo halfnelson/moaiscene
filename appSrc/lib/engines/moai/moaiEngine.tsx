@@ -14,13 +14,15 @@ import {
 } from "../../sceneCommands";
 import { SceneComponent } from "../../sceneComponent";
 import { observer } from "mobx-react";
-import { MoaiHost, scriptRunner, messageProcessor } from "../../moaihost";
+import { MoaiHost,  messageProcessor, messageSender } from "../../moaihost";
+import { sendMessage } from "phosphor-messaging";
 
 class MoaiEngine implements SceneEngine {
     name: string = "moai";
-    sg: any = {};
+    
+    pendingEngineMessages: Array<any> = [];
 
-    runMoaiScript?: scriptRunner;
+    sendEngineMessage: messageSender;
 
     previewComponent: React.ComponentClass<
     IPreviewProps
@@ -30,114 +32,139 @@ class MoaiEngine implements SceneEngine {
             layoutWidth={props.layoutWidth}
             layoutHeight={props.layoutHeight}
             onAttach={this.onAttach.bind(this)}
+            onMessage={this.onEngineMessage.bind(this)}
+
         />
     );
 
-    constructor() { }
-
-    private getObject(o: SceneObject): any {
-        if (o.parent) {
-            return this.getObject(o.parent)[o.name];
-        } else {
-            return this.sg[o.name];
-        }
+    constructor() {
+        this.sendEngineMessage = (msg: any) => this.pendingEngineMessages.push(msg);
     }
 
-    onAttach(runner: scriptRunner): messageProcessor {
-        //todo: flush scenegraph to runner.
-        this.runMoaiScript = runner;
-        runner("print('hi from preview')");
-        return function (msg: any) {
-            console.log("got message", msg);
-        };
+   
+    onEngineMessage(msg: any) {
+       console.log("got message", msg);
+    }
+
+   
+    onAttach(sendEngineMessage: messageSender) {
+        this.sendEngineMessage = sendEngineMessage;
+        sendEngineMessage({msg:"Attached to engine"});
+        this.pendingEngineMessages.forEach(msg =>  sendEngineMessage(msg));
     }
 
     async executePropertySetCommand(
         command: PropertySetCommand,
         sceneTree: SceneTree
     ): Promise<void> {
-        var obj = this.getObject(command.object);
-
-        //special change parent
+        
         if (
             command.propertyName == "parent" &&
             command.newValue.kind == "ref"
         ) {
-            var newParent = command.newValue.value
-                ? this.getObject(command.newValue.value)
-                : null;
-            var oldParent = command.object.parent
-                ? this.getObject(command.object.parent)
-                : null;
-
-            if (newParent) {
-                newParent[command.object.name] = obj;
-                command.object.parent = command.newValue.value;
-            } else {
-                this.sg[command.object.name] = obj;
-                command.object.parent = null;
-            }
-            if (oldParent) {
-                delete oldParent[command.object.name];
-            } else {
-                delete this.sg[command.object.name];
-            }
-
+            this.sendEngineMessage({
+                type: "setParent",
+                target: command.object.getFullName(),
+                value: command.newValue.value.getFullName()
+            })
+            command.object.parent = command.newValue.value;
             return Promise.resolve();
         }
 
-        //change name
         if (
             command.propertyName == "name" &&
             command.newValue.kind == "scalar"
         ) {
-            var parent = command.object.parent
-                ? this.getObject(command.object.parent)
-                : this.sg;
-            parent[command.newValue.value] = obj;
-            if (command.newValue.value != command.object.name) {
-                delete parent[command.object.name];
-            }
+            this.sendEngineMessage({
+                type: "setName",
+                target: command.object.getFullName(),
+                value: command.newValue.value
+            })
             command.object.name = command.newValue.value;
             return Promise.resolve();
         }
 
-        //set prop
-        command.object.properties.set(command.propertyName, command.newValue);
-
         if (command.newValue.kind == "scalar") {
-            obj[command.propertyName] = command.newValue.value;
-        } else {
-            obj[command.propertyName] = this.getObject(command.newValue.value);
+            this.sendEngineMessage({
+                type: "setScalarProperty",
+                target: command.object.getFullName(),
+                propertyName: command.propertyName,
+                value: command.newValue.value
+            })
         }
+        if (command.newValue.kind == "ref") {
+            this.sendEngineMessage({
+                type: "setRefProperty",
+                target: command.object.getFullName(),
+                propertyName: command.propertyName,
+                value: (command.newValue.value && command.newValue.value.getFullName()) || null
+            })
+        }
+
+        return Promise.resolve();
     }
 
     async executeConstructCommand(
         command: ConstructCommand,
         sceneTree: SceneTree
     ): Promise<void> {
+        this.sendEngineMessage({
+            type: "createObject",
+            name: command.object.name,
+            objectClass: command.object.type,
+            parent: command.object.parent && command.object.parent.getFullName(),
+            args: command.args.map(a=>a.serialize())
+        });
         sceneTree.append(command.object);
-        //load properties
-        var sg = this.sg;
-        var parent = command.object.parent
-            ? this.getObject(command.object.parent)
-            : sg;
-        parent[command.object.name] = { type: command.object.type };
     }
 
     async executeDeleteCommand(
         command: DeleteCommand,
         sceneTree: SceneTree
     ): Promise<void> {
+        this.sendEngineMessage({
+            type: "deleteObject",
+            name: command.object.getFullName()
+        });
         sceneTree.remove(command.object);
-        var parent = command.object.parent
-            ? this.getObject(command.object.parent)
-            : this.sg;
-        delete parent[command.object.name];
     }
 
     getComponents(): Array<SceneComponent> {
-        return [];
+        var components:Array<SceneComponent> = [];
+
+        components.push({
+            name: 'MOAIPartitionViewLayer',
+            properties: []
+        });
+
+        components.push({
+            name: 'MOAIGraphicsProp',
+            properties: [
+                {
+                    name: "Deck",
+                    type: "ref"
+                },
+                {
+                    name: "Partition",
+                    type: "ref"
+                }
+            ]
+        });
+
+        components.push({
+            name: 'MOAISpriteDeck2D',
+            properties: [
+                {
+                    name: "Texture",
+                    type: "scalar"
+                },
+                {
+                    name: "Rect",
+                    type: "scalar"
+                }
+            ]
+        });
+        return components;
     }
 
     getEditors(): EditorList {

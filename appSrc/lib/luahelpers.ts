@@ -1,5 +1,5 @@
 export function escapeLuaString(str: string) {
-    return str.replace("\\","\\\\").replace("\"","\\\"");
+    return str.replace(/\\/g,"\\\\").replace(/\"/g,"\\\"");
 }
 
 export function jsArrayToLua(val: Array<any>): string {

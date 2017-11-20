@@ -9,6 +9,8 @@ import { SceneEditor } from "./lib/sceneEditor";
 import { DockPanel } from "phosphor-dockpanel";
 import { SplitPanel } from "phosphor-splitpanel";
 import { ReactWidget } from "./lib/reactWidget";
+import { PropertySetCommand } from "./lib/sceneCommands";
+import { PropertyValueScalar, SceneObjectReference } from "./lib/sceneObject";
 
 
 //declare var window: Window;
@@ -87,12 +89,47 @@ function main() {
     }
 
     loadMockScene(sceneEditor).then(function () {
-        sceneEditor.createObject(null, "test", "Square", []);
-        var parent = sceneEditor.objectByName("test");
-        sceneEditor.createObject(parent, "child1", "Circle", []);
-        sceneEditor.createObject(parent, "child2", "Circle", []);
-        parent = sceneEditor.objectByName("test.child1");
-        sceneEditor.createObject(parent, "child11", "Square", []);
+        sceneEditor.createObject(null,"layer1","MOAIPartitionViewLayer",[]);
+        var layer = sceneEditor.objectByName("layer1");
+        if (!layer) {
+            console.error("Couldn't find layer");
+        }
+
+        sceneEditor.createObject(null, "prop1", "MOAIGraphicsProp", []);
+        var prop = sceneEditor.objectByName("prop1");
+        if (!prop) {
+            console.error("Couldn't find prop");
+        }
+
+        sceneEditor.createObject(null, "gfxQuad", "MOAISpriteDeck2D", []);
+        var deck = sceneEditor.objectByName("gfxQuad");
+        if (!deck) {
+            console.error("Couldn't find deck");
+        }
+
+
+        sceneEditor.clearSelection();
+        sceneEditor.addToSelection(deck);
+
+        sceneEditor.setPropertyOnSelected("Texture", new PropertyValueScalar("moai.png"));
+        sceneEditor.setPropertyOnSelected("Rect", new PropertyValueScalar([-64, -64, 64, 64]));
+        
+        sceneEditor.clearSelection();
+        sceneEditor.addToSelection(prop);
+
+        sceneEditor.setPropertyOnSelected("Deck", new SceneObjectReference(deck));
+        sceneEditor.setPropertyOnSelected("Partition", new SceneObjectReference(layer));
+
+        sceneEditor.clearSelection();
+        
+
+
+       // sceneEditor.createObject(null, "test", "Square", []);
+       // var parent = sceneEditor.objectByName("test");
+       // sceneEditor.createObject(parent, "child1", "Circle", []);
+       // sceneEditor.createObject(parent, "child2", "Circle", []);
+       // parent = sceneEditor.objectByName("test.child1");
+        //sceneEditor.createObject(parent, "child11", "Square", []);
     });
 }
 

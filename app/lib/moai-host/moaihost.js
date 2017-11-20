@@ -327,7 +327,7 @@ function MoaiJS(canvas, total_memory, onTitleChange, onStatusChange, onError, on
     console.log("MoaiJS Init");
 }
 
-MoaiJS.prototype.instantiateWasm = function(info, receiveInstance) {
+/*MoaiJS.prototype.instantiateWasm = function(info, receiveInstance) {
     return 
     fetch(this.wasmfile, { credentials: 'same-origin' })
     .then(function(response) {
@@ -346,7 +346,7 @@ MoaiJS.prototype.instantiateWasm = function(info, receiveInstance) {
       console.error('failed to asynchronously prepare wasm: ' + reason);
     });
 }
-
+*/
 MoaiJS.prototype.getEmscripten = function() {
     if (this.emscripten) return this.emscripten;
     

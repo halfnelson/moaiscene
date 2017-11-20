@@ -1,17 +1,19 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { SceneCommand } from "./sceneCommands";
+import { escapeLuaString } from "./luaHelpers";
 
 declare var MoaiJS: any;
 
 const path = require("path");
 
-export type scriptRunner = (script: string) => any;
+export type messageSender = (msg: any) => any;
 export type messageProcessor = (msg: any) => any;
-type engineAttachCallback = (sr: scriptRunner) => messageProcessor;
+type engineAttachCallback = (sr: messageSender) => any;
 
 interface IHostProps {
     onAttach?: engineAttachCallback;
+    onMessage?: messageProcessor;
     sourcePath: string;
     layoutWidth?: number;
     layoutHeight?: number;
@@ -22,13 +24,15 @@ interface IHostState {
     mount?: any;
     editor_mount?: any;
 }
+const messagePrefix: string = "MESSAGE:";
 
 export class MoaiHost extends React.Component<IHostProps, IHostState> {
     moaiCanvas: HTMLCanvasElement;
     moai: any;
     active: boolean;
-    onMessage?: messageProcessor;
     unhookevents: () => void;
+
+    
 
     constructor(props: IHostProps) {
         super(props);
@@ -74,9 +78,11 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
     }
 
     onPrint(x: string) {
-        console.log(x);
-        if (x.startsWith("MESSAGE:\n")) {
-            //deserialize message
+        //TODO: stop piggybacking on onPrint, but until we finish POC this will do.
+        if (this.props.onMessage && x.startsWith(messagePrefix)) {
+            this.props.onMessage(JSON.parse(x.substring(x.indexOf("{"))));
+        } else {
+            console.log(x);
         }
     }
 
@@ -177,17 +183,17 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
         this.active = true;
 
         emscripten.requestAnimationFrame(this.renderLoop.bind(this));
-
+        
         if (this.props.onAttach) {
-            this.onMessage = this.props.onAttach(function(
-                script: string
-            ) {
-                console.log("run string:", script);
-            });
-            this.onMessage("Hi from moai host");
+            this.props.onAttach(this.sendEngineMessage.bind(this));
         }
-     
+    }
 
+    sendEngineMessage(msg: any) {
+        var msgJson =JSON.stringify(msg);
+        
+        console.log('executing processMessage("'+escapeLuaString(msgJson)+'")');
+        this.moai.AKURunString('processMessage("'+escapeLuaString(msgJson)+'")');
     }
 
     componentDidMount() {
@@ -205,10 +211,6 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
             () => {},
             'lib/moai-host/lib/moaijs.wasm'
         );
-       
-
-      
-
 
         this.moai.getEmscripten()
         .then((emscripten) => Promise.resolve(emscripten))
