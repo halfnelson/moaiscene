@@ -1,4 +1,5 @@
 import { observable, map, ObservableMap } from 'mobx';
+import { SceneObjectProperties } from './components/sceneObjectProperties';
 export interface SerializedPropertyValueScalar  {
     kind: 'scalar';
     value: any;
@@ -78,6 +79,15 @@ export class SceneObject  {
 
 export class SceneTree {
     @observable private objects: Array<SceneObject> = [];
+    public Root: SceneObject;
+
+    constructor() {
+        var root = new SceneObject()
+        root.name = "scene";
+        root.parent = null;
+        root.properties = new ObservableMap<SceneObjectPropertyValue>();
+        root.type = "SceneObject";
+    }
     
     public childrenOf(so: SceneObject): Array<SceneObject> {
         return this.objects.filter(x=>x.parent == so)
@@ -88,6 +98,9 @@ export class SceneTree {
     }
 
     public append(so: SceneObject) {
+        if (!so.parent) {
+            so.parent = this.Root;
+        }
         this.objects.push(so);
     }
 
