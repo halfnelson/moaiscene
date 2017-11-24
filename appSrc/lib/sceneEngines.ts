@@ -50,7 +50,10 @@ export interface SceneEngine {
     ): Promise<void>;
     previewComponent: React.ComponentClass<IPreviewProps>;
     //renderPreview(props: IPreviewProps): JSX.Element;
-    getComponents(): Array<SceneComponent>;
+
+    init(): Promise<void>;
+
+    getComponents(): Promise<Array<SceneComponent>>;
     getEditors(): EditorList;
 }
 

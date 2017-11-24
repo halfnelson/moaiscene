@@ -65,7 +65,7 @@ export class SceneEditor {
         return Promise.resolve(scene);
     }
 
-    public getComponents(): SceneComponent[] {
+    public getComponents(): Promise<SceneComponent[]> {
         return this.engine.getComponents();
     }
 

@@ -10,7 +10,9 @@ interface IObjectPropertiesProps {
     sceneEditor: SceneEditor;
 }
 
-interface IObjectPropertiesState { }
+interface IObjectPropertiesState {
+    components: Array<SceneComponent>
+ }
 
 @observer
 export class DefaultScalarPropertyEditor extends React.Component<
@@ -55,14 +57,26 @@ IObjectPropertiesState
 > {
     constructor(props: IObjectPropertiesProps) {
         super(props);
-        this.state = {};
+        this.state = {
+            components: []
+        };
     }
 
     componentWillUnmount() { }
 
-    componentWillReceiveProps(nextProps: IObjectPropertiesProps) { }
+    componentWillReceiveProps(nextProps: IObjectPropertiesProps) {
+        if (nextProps.sceneEditor != this.props.sceneEditor) {
+            nextProps.sceneEditor.getComponents().then(components => {
+                this.setState({ components: components });
+            })
+        }
+    }
 
-    componentDidMount() { }
+    componentDidMount() {
+        this.props.sceneEditor.getComponents().then(components => {
+            this.setState({ components: components })
+        })
+    }
 
     renderPropertyEditor(obj: SceneObject, prop: SceneComponentProperty) {
         var editorProps: EditorProps = {
@@ -89,7 +103,7 @@ IObjectPropertiesState
 
     renderEditors() {
         //TODO allow multiple sceneObjects
-        var components = this.props.sceneEditor.getComponents();
+        var components = this.state.components;
         if (this.props.sceneEditor.selected.length > 0) {
             var thisObject = this.props.sceneEditor.selected[0];
         }

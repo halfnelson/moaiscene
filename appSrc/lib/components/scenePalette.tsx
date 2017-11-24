@@ -9,7 +9,9 @@ interface IPaletteProps {
     sceneEditor: SceneEditor;
 }
 
-interface IPaletteState {}
+interface IPaletteState {
+    components: Array<SceneComponent>
+}
 
 @observer
 export class ScenePalette extends React.Component<
@@ -18,17 +20,27 @@ export class ScenePalette extends React.Component<
 > {
     constructor(props: IPaletteProps) {
         super(props);
-        this.state = {};
+        this.state = {
+            components: []
+        };
     }
 
     componentWillUnmount() {}
 
-    componentWillReceiveProps(nextProps: IPaletteProps) {}
+    componentWillReceiveProps(nextProps: IPaletteProps) {
+        if (nextProps.sceneEditor != this.props.sceneEditor) {
+            nextProps.sceneEditor.getComponents().then(components => {
+                this.setState((prev, props) => {
+                    return { components: components }
+                })
+            })
+        }
+    }
 
-    componentDidMount() {}
-
-    getComponents() {
-        return this.props.sceneEditor.getComponents();
+    componentDidMount() {
+        this.props.sceneEditor.getComponents().then(components => {
+            this.setState({ components: components })
+        })
     }
 
     render() {
@@ -37,7 +49,7 @@ export class ScenePalette extends React.Component<
                 <h1>Palette</h1>
                 <pre>
                     <code>
-                        {JSON.stringify(this.getComponents(), null, 2)}
+                        {JSON.stringify(this.state.components, null, 2)}
                     </code>
                 </pre>
             </div>

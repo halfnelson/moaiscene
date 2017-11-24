@@ -16,6 +16,7 @@ import { SceneComponent } from "../../sceneComponent";
 import { observer } from "mobx-react";
 import { MoaiHost,  messageProcessor, messageSender } from "../../moaihost";
 import { sendMessage } from "phosphor-messaging";
+import { Deferred } from "../../deferred";
 
 class MoaiEngine implements SceneEngine {
     name: string = "moai";
@@ -23,6 +24,9 @@ class MoaiEngine implements SceneEngine {
     pendingEngineMessages: Array<any> = [];
 
     sendEngineMessage: messageSender;
+
+
+    components: Deferred<Array<SceneComponent>> = new Deferred<Array<SceneComponent>>();
 
     previewComponent: React.ComponentClass<
     IPreviewProps
@@ -38,19 +42,33 @@ class MoaiEngine implements SceneEngine {
     );
 
     constructor() {
-        this.sendEngineMessage = (msg: any) => this.pendingEngineMessages.push(msg);
+        this.sendEngineMessage = (msg: any) => {
+            console.log("pushing message",msg);
+            this.pendingEngineMessages.push(msg);
+        }
     }
 
+    init(): Promise<void> {
+        this.refreshComponents();
+        return Promise.resolve();
+    }
    
     onEngineMessage(msg: any) {
        console.log("got message", msg);
+       if (msg.type == "ComponentInfo") {
+            this.components.resolve(msg.components);
+       }
     }
 
-   
+    private refreshComponents() {
+        this.sendEngineMessage({ type: "GetComponents" });
+    } 
+    
     onAttach(sendEngineMessage: messageSender) {
         this.sendEngineMessage = sendEngineMessage;
-        sendEngineMessage({msg:"Attached to engine"});
+        sendEngineMessage({msg:"Attached to engine111"});
         this.pendingEngineMessages.forEach(msg =>  sendEngineMessage(msg));
+        this.components.resolve(this.dummyComponents());
     }
 
     async executePropertySetCommand(
@@ -129,8 +147,46 @@ class MoaiEngine implements SceneEngine {
         sceneTree.remove(command.object);
     }
 
-    getComponents(): Array<SceneComponent> {
+    private dummyComponents(): Array<SceneComponent> {
         var components:Array<SceneComponent> = [];
+        
+                components.push({
+                    name: 'MOAIPartitionViewLayer',
+                    properties: []
+                });
+        
+                components.push({
+                    name: 'MOAIGraphicsProp',
+                    properties: [
+                        {
+                            name: "Deck",
+                            type: "ref"
+                        },
+                        {
+                            name: "Partition",
+                            type: "ref"
+                        }
+                    ]
+                });
+        
+                components.push({
+                    name: 'MOAISpriteDeck2D',
+                    properties: [
+                        {
+                            name: "Texture",
+                            type: "scalar"
+                        },
+                        {
+                            name: "Rect",
+                            type: "scalar"
+                        }
+                    ]
+                });
+                return components;
+    }
+
+    getComponents(): Promise<Array<SceneComponent>> {
+       /* var components:Array<SceneComponent> = [];
 
         components.push({
             name: 'MOAIPartitionViewLayer',
@@ -163,8 +219,9 @@ class MoaiEngine implements SceneEngine {
                     type: "scalar"
                 }
             ]
-        });
-        return components;
+        });*/
+        console.log("returning promise", this.components.promise)
+         return this.components.promise;
     }
 
     getEditors(): EditorList {
@@ -172,4 +229,7 @@ class MoaiEngine implements SceneEngine {
     }
 }
 
-SceneEngines.registerEngine("moai", async () => new MoaiEngine());
+SceneEngines.registerEngine("moai", async () => {
+    var moai = new MoaiEngine();
+    return moai.init().then(()=>moai);
+});

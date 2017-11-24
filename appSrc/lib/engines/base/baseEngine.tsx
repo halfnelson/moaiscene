@@ -40,6 +40,10 @@ class BaseEngine implements SceneEngine {
 
     constructor() {}
 
+    init(): Promise<void> {
+        return Promise.resolve();
+    }
+
     private getObject(o: SceneObject): any {
         if (o.parent) {
             return this.getObject(o.parent)[o.name];
@@ -132,8 +136,8 @@ class BaseEngine implements SceneEngine {
         delete parent[command.object.name];
     }
 
-    getComponents(): Array<SceneComponent> {
-        return [
+    getComponents(): Promise<Array<SceneComponent>> {
+        var components:Array<SceneComponent> = [
             {
                 name: "Circle",
                 properties: [
@@ -149,6 +153,7 @@ class BaseEngine implements SceneEngine {
                 ]
             }
         ];
+        return Promise.resolve(components);
     }
 
     getEditors(): EditorList {
