@@ -3,39 +3,15 @@ local Scene_mt = { __index = Scene }
 
 Scene.create = function() 
   local obj = {
-    viewports = {},
     layers = {},
-    props = {},
-    decks = {},
-    resources = {},
     objects = {}
   }
   setmetatable(obj, Scene_mt)
   return obj
 end
 
-function Scene:addViewport(viewport)
-  table.insert(self.viewports, viewport)
-end
-
 function Scene:addLayer(layer)
   table.insert(self.layers, layer)
-end
-
-function Scene:addProp(prop)
-   table.insert(self.props, prop)
-end
-
-function Scene:addDeck(deck)
-   table.insert(self.decks, deck)
-end
-
-function Scene:addResourse(resource)
-   table.insert(self.resources, resource)
-end
-
-function Scene:addRootObject(name, obj)
-  self.objects[name] = obj
 end
 
 

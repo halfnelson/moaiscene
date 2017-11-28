@@ -88,10 +88,13 @@ IObjectPropertiesState
         };
 
         var editor;
+        if (prop.editorName) {
+            editor = <prop.editorName {...editorProps} />;
+        }
 
         //TODO some sort of editor lookup
         //fallback to key-value
-        if (prop.type == "scalar") {
+        if (!editor && prop.type == "scalar") {
             editor = <DefaultScalarPropertyEditor {...editorProps} />;
         }
         return (

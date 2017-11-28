@@ -1,14 +1,35 @@
 local u = require('tableutil')
+local Scene = require('scene')
+local Events = require('inputEvents')
 
 Editor = {
   viewport = MOAIViewport.new (),
   camera = MOAICamera.new (),
   layer = MOAIPartitionViewLayer.new(),
   selection = {}
+  scene = nil
 }
+
+
 Editor.layer:setViewport(Editor.viewport)
 Editor.layer:setCamera(Editor.camera)
- 
+
+
+function Editor:setScene(scene)
+    self.scene = scene
+    self.camera:setLoc(0,0,0)
+    self.layer:setScl(1,1,1)
+    MOAIRenderMgr.setRender({
+      self.scene.layers,
+      self.layer
+    })
+end
+
+
+function Editor:loadNewScene()
+  self:setScene(Scene.create())
+end
+
 function Editor:clearSelection()
   Editor.selection = {}
 end
@@ -17,12 +38,9 @@ function Editor:deselect(prop)
   Editor.selection = u.ipairs():filter(function(v) return v ~= prop end):toArray(Editor.selection)
 end
 
-
-
 function Editor:getEditorPoint(layer, x, y, z)
     return self.layer:wndToWorld(layer:worldToWnd(x,y,z))
 end
-
 
 function Editor:getEditorCorners(prop, layer)
   local a0,b0,c0,a1,b1,c1 = prop:getBounds()
@@ -88,51 +106,129 @@ function Editor:select(prop, layer)
   table.insert(self.selection, prop)
 end
 
-local NullVertexShader = [[
-    attribute vec4 position;
-    void main () {
-      gl_Position = position;
-    }
-]]
+function Editor:sendMessage(msg) 
+  local messageString = MOAIJsonParser.encode(msg)
+  if (messageString) then
+    print("MESSAGE: "..messageString)
+  end
+end
 
-local GridShader = [[
+-- Input Actions
 
-void stroke(float dist, vec3 color, inout vec3 fragColor, float thickness, float aa)
-{
-    float alpha = smoothstep(0.5 * (thickness + aa), 0.5 * (thickness - aa), abs(dist));
-    fragColor = mix(fragColor, color, alpha);
-}
+Events.rightMouseDrag:subscribe(function(dx,dy) 
+  Editor:panView(dx,dy)
+end)
 
-void renderGrid(vec2 pos, out vec3 fragColor)
-{
-    vec3 background = vec3(1.0);
-    vec3 axes = vec3(0.4);
-    vec3 lines = vec3(0.7);
-    vec3 sublines = vec3(0.95);
-    float subdiv = 8.0;
+local propClick = Events.leftMouseDown:map(function(down, x, y) 
+  return Editor.scene:propForPoint(x,y)
+end):compact()
+ 
 
-    float thickness = 0.003;
-    float aa = length(fwidth(pos));
+propClick:subscribe(
+  function(prop, layer) 
+      print("gotpropclick", prop, layer)
+      Editor:sendMessage({
+          type = "propClick",
+          propName = Editor.scene:resolveName(prop)
+          ctrlDown = Events.keyIsDown(MOAIKeyCode.CONTROL)
+      })
+   end,
+  function(err) 
+      print("error in propclick",err)
+  end
+)
 
-    fragColor = background;
+-- Message Processing
+function Editor:createObjectByClassName(objClass, args)
+  local class = _G[objClass]
+  if not class then 
+      print("Could not find class ",objClass)
+      return nil
+  end
 
-    vec2 toSubGrid = pos - round(pos*subdiv)/subdiv;
-    stroke(min(abs(toSubGrid.x), abs(toSubGrid.y)), sublines, fragColor, thickness, aa);
+  if not class.new then
+      print("Could not find constructor for ",objClass)
+      return nil
+  end
+  return class.new()
+end
 
-    vec2 toGrid = pos - round(pos);
-    stroke(min(abs(toGrid.x), abs(toGrid.y)), lines, fragColor, thickness, aa);
-    stroke(min(abs(pos.x), abs(pos.y)), axes, fragColor, thickness, aa);
-}
 
-void mainImage(out vec4 fragColor, in vec2 fragCoord)
-{
-    float aspect = iResolution.x / iResolution.y;
-  	vec2 pos = (fragCoord / iResolution.y) * 1.3 - vec2((1.3*aspect - 1.0)/2.0, 0.15);
-    fragColor.a = 1.0;
-  	renderGrid(pos, fragColor.rgb);
-}
-]]
---from https://www.shadertoy.com/view/MtlcWX
+function Editor:createObject(objClass, name, parentName, args)
+  
+  local parent
+  if not parentName then 
+    parent = self.scene.objects
+  else
+    parent = self.scene:resolveEntity(parentName)
+  end
 
+  local obj = self:createObjectByClassName(objClass, args)
+  
+  if not obj then return end
+  if not parent.children then
+    parent.children = {}
+  end
+
+  parent.children[name] = obj
+  obj.name = name
+  obj.parent = parent
+
+  print("Object created", obj)
+
+  if (obj.setViewport) then
+      obj:setViewport( self.viewport )
+      obj:setCamera( self.camera )   
+      self.scene:addLayer(obj)
+  end
+
+end
+
+local function nullToNil(val)
+  if (val == MOAIJsonParser.JSON_NULL) then
+      return nil
+  end
+  return val
+end
+
+function Editor:setObjectProperty(target, propertyName, value)
+  local targetEntity = self.scene:resolveEntity(target)
+
+  if not targetEntity then
+      print("Could not find target entity for setProperty",target )
+      return
+  end
+
+  if targetEntity['set'..propertyName] then
+      if (type(value) == "table") then
+          targetEntity['set'..propertyName](targetEntity, unpack(value))
+      else
+          targetEntity['set'..propertyName](targetEntity, value)
+      end
+      return
+  end
+ 
+  targetEntity[propertyName] = value
+end
+
+
+
+function Editor:handleMessage(msg)
+  if (msg.type == "createObject") then 
+      self:createObject(msg.objectClass, msg.name, nullToNil(msg.parent), msg.args)
+  end 
+
+  if (msg.type == "setScalarProperty") then
+      self:setObjectProperty(msg.target, msg.propertyName, nullToNil(msg.value)) 
+  end
+
+  if (msg.type == "setRefProperty") then
+      local ref = nullToNil(msg.value)       
+      self:setProperty(msg.target, msg.propertyName, ref and self.scene:resolveEntity(ref) or nil ) 
+  end
+end
+
+
+Editor:loadNewScene()
 
 return Editor
