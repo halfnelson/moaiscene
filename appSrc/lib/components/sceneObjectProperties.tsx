@@ -83,18 +83,18 @@ IObjectPropertiesState
             // obj: obj,
             propertyName: prop.name,
             sceneEditor: this.props.sceneEditor,
-            options: prop.editorOptions,
+            options: prop.editor.editorOptions,
             propertyValue: obj.properties.get(prop.name)
         };
 
         var editor;
-        if (prop.editorName) {
-            editor = <prop.editorName {...editorProps} />;
+        if (prop.editor.editorClass) {
+            editor = <prop.editor.editorClass {...editorProps} />;
         }
 
         //TODO some sort of editor lookup
         //fallback to key-value
-        if (!editor && prop.type == "scalar") {
+        if (!editor) {
             editor = <DefaultScalarPropertyEditor {...editorProps} />;
         }
         return (

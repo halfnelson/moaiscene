@@ -6,17 +6,29 @@ import {
     EditorList,
     SceneEngines
 } from "../../sceneEngines";
-import { SceneObject, SceneTree } from "../../sceneObject";
+import { SceneObject, SceneTree, SceneObjectPropertyValue, SceneObjectReference, PropertyValueScalar, SceneRootName } from "../../sceneObject";
 import {
     PropertySetCommand,
     ConstructCommand,
     DeleteCommand
 } from "../../sceneCommands";
-import { SceneComponent } from "../../sceneComponent";
+import { SceneComponent, SceneComponentProperty } from "../../sceneComponent";
 import { observer } from "mobx-react";
 import { MoaiHost,  messageProcessor, messageSender } from "../../moaihost";
 import { sendMessage } from "phosphor-messaging";
 import { Deferred } from "../../deferred";
+import { components, ComponentList } from  "./moaiComponentSchema";
+
+
+class MoaiEngineExpression {
+    expr: string;
+    constructor(expr:string) {
+        this.expr = expr;
+    }
+    __tolua():string {
+        return this.expr;
+    }
+}
 
 class MoaiEngine implements SceneEngine {
     name: string = "moai";
@@ -24,9 +36,6 @@ class MoaiEngine implements SceneEngine {
     pendingEngineMessages: Array<any> = [];
 
     sendEngineMessage: messageSender;
-
-
-    components: Deferred<Array<SceneComponent>> = new Deferred<Array<SceneComponent>>();
 
     previewComponent: React.ComponentClass<
     IPreviewProps
@@ -48,33 +57,43 @@ class MoaiEngine implements SceneEngine {
     }
 
     init(): Promise<void> {
-        this.refreshComponents();
         return Promise.resolve();
     }
    
     onEngineMessage(msg: any) {
        console.log("got engine message", msg);
-       if (msg.type == "ComponentInfo") {
-            this.components.resolve(msg.components);
-       }
+      
     }
-
-    private refreshComponents() {
-        this.sendEngineMessage({ type: "GetComponents" });
-    } 
     
     onAttach(sendEngineMessage: messageSender) {
         this.sendEngineMessage = sendEngineMessage;
         sendEngineMessage({msg:"Attached to engine"});
         this.pendingEngineMessages.forEach(msg =>  sendEngineMessage(msg));
-        this.components.resolve(this.dummyComponents());
     }
 
     async executePropertySetCommand(
         command: PropertySetCommand,
         sceneTree: SceneTree
     ): Promise<void> {
-        
+        var propName = command.propertyName;
+        var className = command.object.type;
+        var component = components[className];
+
+        if (!component) {
+            throw ("couldn't find class "+className+" in schema");
+        }
+
+        var prop = component.props[propName];
+        if (!prop) {
+            throw ("couldn't find property "+propName+" in schema for "+ className);
+        }
+
+        var script = prop.set(command.object.getFullName(), propName, command.newValue);
+
+        return this.runLuaScript(script);
+
+        /*
+
         if (
             command.propertyName == "parent" &&
             command.newValue.kind == "ref"
@@ -117,80 +136,97 @@ class MoaiEngine implements SceneEngine {
                 value: (command.newValue.value && command.newValue.value.getFullName()) || null
             })
         }
-
+       
         return Promise.resolve();
+         */
     }
 
     async executeConstructCommand(
         command: ConstructCommand,
         sceneTree: SceneTree
     ): Promise<void> {
-        this.sendEngineMessage({
+     
+        var className = command.object.type;
+        var component = components[className];
+
+        if (!component) {
+            throw ("couldn't find class "+className+" in schema");
+        }
+
+        var script = component.construct(command.object.parent ? command.object.parent.getFullName() : SceneRootName, command.object.name, command.object.type, command.args);
+        sceneTree.append(command.object);
+        script = script + `\n Editor:onObjectCreated(${command.object.getFullName()})`;
+        return this.runLuaScript(script );
+
+       
+
+       /* this.sendEngineMessage({
             type: "createObject",
             name: command.object.name,
             objectClass: command.object.type,
             parent: command.object.parent && command.object.parent.getFullName(),
             args: command.args.map(a=>a.serialize())
-        });
-        sceneTree.append(command.object);
+        });*/
+        
     }
 
     async executeDeleteCommand(
         command: DeleteCommand,
         sceneTree: SceneTree
     ): Promise<void> {
-        this.sendEngineMessage({
+  /*      this.sendEngineMessage({
             type: "deleteObject",
             name: command.object.getFullName()
-        });
-        sceneTree.remove(command.object);
+        });*/
+        throw ("Delete not implemented");
+       // sceneTree.remove(command.object);
     }
 
-    private dummyComponents(): Array<SceneComponent> {
-        var components:Array<SceneComponent> = [];
-        
-                components.push({
-                    name: 'MOAIPartitionViewLayer',
-                    properties: []
-                });
-        
-                components.push({
-                    name: 'MOAIGraphicsProp',
-                    properties: [
-                        {
-                            name: "Deck",
-                            type: "ref"
-                        },
-                        {
-                            name: "Partition",
-                            type: "ref"
-                        }
-                    ]
-                });
-        
-                components.push({
-                    name: 'MOAISpriteDeck2D',
-                    properties: [
-                        {
-                            name: "Texture",
-                            type: "scalar"
-                        },
-                        {
-                            name: "Rect",
-                            type: "scalar"
-                        }
-                    ]
-                });
-                return components;
+    runLuaScript(lua: string): Promise<void> {
+        return this.sendEngineMessage({
+            type: "runLuaString",
+            script: lua
+        });
     }
+
 
     getComponents(): Promise<Array<SceneComponent>> {
-         return this.components.promise;
+        var sc:Array<SceneComponent> = [];
+        var schema: ComponentList = components;
+        for (const name in schema) {
+            var props: Array<SceneComponentProperty> = [];
+            var currentComponent = schema[name];
+
+            for(const p in currentComponent.props) {
+                var currentProp = currentComponent.props[p];
+                props.push({
+                    editor: currentProp.editor,
+                    name: p
+                });
+            }
+
+            sc.push({
+                name: name,
+                properties: props
+            })
+        }
+        return Promise.resolve(sc);
     }
 
     getEditors(): EditorList {
         return {};
     }
+
+ /*
+    constructUsingLua(newObject: SceneObject, args: Array<SceneObjectPropertyValue>): Promise<void> {
+        //var construct = this.constructAsLua(newObject.getFullName(), newObject.type, args);
+        return executeLuaInEngine(construct);
+    }
+    
+    //Property Types
+    setUsingLua(sceneObject: SceneObject, propertyName: string, value: SceneObjectPropertyValue): Promise<void> {
+        return executeLuaInEngine(this.setterAsLua(sceneObject.getFullName(), propertyName, value))
+    }*/
 }
 
 SceneEngines.registerEngine("moai", async () => {

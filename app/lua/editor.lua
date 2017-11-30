@@ -2,7 +2,8 @@ local u = require('tableutil')
 local Scene = require('scene')
 local Events = require('inputEvents')
 
-Editor = {
+
+local Editor = {
   viewport = MOAIViewport.new (),
   camera = MOAICamera.new (),
   layer = MOAIPartitionViewLayer.new(),
@@ -23,6 +24,7 @@ function Editor:setScene(scene)
       self.scene.layers,
       self.layer
     })
+  
 end
 
 
@@ -208,6 +210,30 @@ function Editor:setObjectProperty(target, propertyName, value)
   targetEntity[propertyName] = value
 end
 
+function Editor:onObjectCreated(obj)
+  print("object created "..obj.name)
+  if (obj.setViewport) then
+      obj:setViewport( self.viewport )
+      obj:setCamera( self.camera )   
+      self.scene:addLayer(obj)
+  end
+end
+
+
+function Editor:runEditorCommandScript(script)
+    local cmd, err = loadstring(script,"EditorCommandScript")
+    if not cmd then
+      print("Error running command", err, script)
+    else
+      --scripts except scene root to be a global SceneRoot
+      local funcGlobal = { SceneRoot = self.scene.objects, Editor = self } 
+      setmetatable(funcGlobal, {__index = _G})
+      setfenv(cmd, funcGlobal)    -- set it
+      cmd()
+   end
+   
+end
+
 
 
 function Editor:handleMessage(msg)
@@ -222,6 +248,10 @@ function Editor:handleMessage(msg)
   if (msg.type == "setRefProperty") then
       local ref = nullToNil(msg.value)       
       self:setObjectProperty(msg.target, msg.propertyName, ref and self.scene:resolveEntity(ref) or nil ) 
+  end
+
+  if (msg.type == "runLuaString") then
+      self:runEditorCommandScript(msg.script)
   end
 end
 

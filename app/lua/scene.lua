@@ -4,7 +4,9 @@ local Scene_mt = { __index = Scene }
 Scene.create = function() 
   local obj = {
     layers = {},
-    objects = {}
+    objects = {
+      children = {}
+    }
   }
   setmetatable(obj, Scene_mt)
   return obj

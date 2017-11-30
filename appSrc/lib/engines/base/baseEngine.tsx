@@ -12,13 +12,14 @@ import {
     DeleteCommand,
     PropertySetCommand
 } from "../../sceneCommands";
-import { SceneObject, SceneTree } from "../../sceneObject";
+import { SceneObject, SceneTree, SceneObjectPropertyValue } from "../../sceneObject";
 import { SceneComponent } from "../../sceneComponent";
 import { SceneEditor } from "../../SceneEditor";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { observer } from "mobx-react";
 import { extendObservable, autorun, observable } from "mobx";
+import { DefaultScalarPropertyEditor } from "../../components/sceneObjectProperties";
 
 class BaseEngine implements SceneEngine {
     name: string = "base";
@@ -137,19 +138,24 @@ class BaseEngine implements SceneEngine {
     }
 
     getComponents(): Promise<Array<SceneComponent>> {
+
+        var basicEditor = {
+                editorClass: DefaultScalarPropertyEditor
+        }
+      
         var components:Array<SceneComponent> = [
             {
                 name: "Circle",
                 properties: [
-                    { name: "radius", type: "scalar" },
-                    { name: "location", type: "scalar" }
+                    { name: "radius", editor: basicEditor },
+                    { name: "location", editor: basicEditor }
                 ]
             },
             {
                 name: "Square",
                 properties: [
-                    { name: "sideLength", type: "scalar" },
-                    { name: "location", type: "scalar" }
+                    { name: "sideLength", editor: basicEditor},
+                    { name: "location", editor: basicEditor}
                 ]
             }
         ];

@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { SceneCommand } from "./sceneCommands";
-import { escapeLuaString } from "./luaHelpers";
+import { escapeLuaString } from "./luahelpers";
 
 declare var MoaiJS: any;
 

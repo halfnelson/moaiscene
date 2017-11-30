@@ -49,6 +49,8 @@ export type SceneObjectPropertyValue = PropertyValueScalar | SceneObjectReferenc
 
 export type SceneObjectPropertyValues = ObservableMap<SceneObjectPropertyValue> 
 
+export const SceneRootName: string = "SceneRoot"
+
 export class SceneObject  {
     public name: string; 
     public parent: SceneObject = null;
@@ -58,13 +60,15 @@ export class SceneObject  {
   
     @observable public properties: SceneObjectPropertyValues = map<SceneObjectPropertyValue>();
     
+    
+
     public getFullName(): string {
         return this.getParentPrefix() + this.name;
     }
 
     public getParentPrefix(): string {
-        if (!this.parent) return "";
-        return this.parent.getFullName() + ".";    
+        if (!this.parent) return SceneRootName+".children.";
+        return this.parent.getFullName() + ".children.";    
     }
 
     public serialize():any {
@@ -94,7 +98,7 @@ export class SceneTree {
     }
 
     public objectByName(name: string): SceneObject {
-        return this.objects.find(v=>v.getFullName() == name);
+        return this.objects.find(v=>v.getFullName() == name ||v.getFullName() == SceneRootName+".children."+name);
     }
 
     public append(so: SceneObject) {
