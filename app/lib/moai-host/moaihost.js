@@ -13,6 +13,7 @@ function RomCache() {
       this.DB_VERSION = 1;
       this.METADATA_STORE_NAME = 'METADATA';
       this.PACKAGE_STORE_NAME = 'PACKAGES';
+      this.WASM_STORE_NAME = 'WASM';
 }      
 
 RomCache.prototype.openDatabase = function() {
@@ -39,7 +40,13 @@ RomCache.prototype.openDatabase = function() {
             db.deleteObjectStore(that.METADATA_STORE_NAME);
           }
           var metadata = db.createObjectStore(that.METADATA_STORE_NAME);
+
+          if(db.objectStoreNames.contains(that.WASM_STORE_NAME)) {
+            db.deleteObjectStore(that.WASM_STORE_NAME);
+          }
+          var wasmstore = db.createObjectStore(that.WASM_STORE_NAME);
         };
+
         openRequest.onsuccess = function(event) {
           var db = event.target.result;
           d.resolve(db);
@@ -57,6 +64,81 @@ RomCache.prototype.getDb = function() {
   }
   return this.openedDatabase;
 }
+
+
+RomCache.prototype.instantiateCachedWasm = function(url, version, importObject) {
+    var key = url + "::version="+version;
+    var that = this;
+
+    function fetchAndInstantiate() {
+        return fetch(url, { credentials: 'same-origin' })
+        .then(function(response) {
+            if (!response['ok']) {
+                throw "failed to load wasm binary file at '" + url + "'";
+            }
+            return response['arrayBuffer']();
+        })
+        .then(function(binary) {
+            return WebAssembly.instantiate(binary, importObject)
+        })
+    }
+
+
+    return this.getDb().then(function(db) {
+
+        function getCachedWasm() {
+            var d = D.defer();
+            var store = db.transaction([that.WASM_STORE_NAME]).objectStore(that.WASM_STORE_NAME);
+            var req = store.get(key);
+            req.onerror = function(err) { d.reject(err); };
+            req.onsuccess = function(event) {
+                var result = event.target.result;
+                if (result) {
+                    d.resolve(result)
+                } else {
+                    d.reject("Wasm module with key="+key+" not found" )
+                }
+            }
+            return d.promise
+        }
+
+        function cacheWasm(module) {
+            try {
+                var store = db.transaction([that.WASM_STORE_NAME], that.IDB_RW).objectStore(that.WASM_STORE_NAME);
+                var oldversionkeys = IDBKeyRange.upperBound(key,true); 
+                console.log("trying to save to db:", module);
+
+                //store new version
+                var req = store.put(module, key);
+                req.onerror = function(err) { console.log("Failed to cache wasm:"+key) };
+                req.onsuccess = function(event) { console.log("cached wasm:"+key) };
+
+                //remove old versions
+                var delreq = store.delete(oldversionkeys);
+                req.onerror = function(err) { console.log("Failed delete old version:"+key) };
+                req.onsuccess = function(event) { console.log("deleted old versions of:"+key) };
+            } catch (e) {
+                console.log("Couldn't cache wasm:", e);
+            }
+        }
+
+        return getCachedWasm().then(
+            function(module) {
+                console.log("Found "+key+" in wasm cache");
+                return WebAssembly.instantiate(module, importObject);
+            },
+            function(err) {
+                console.log(err);
+                return fetchAndInstantiate().then(function(results) {
+                    cacheWasm(results.module);
+                    return results.instance;
+                })
+            }
+        );
+    })
+}
+
+
 
 RomCache.prototype.checkCachedPackage = function( packageName, uuid) {
    var that = this;
@@ -88,6 +170,7 @@ RomCache.prototype.dbCheckCachedPackage = function(db, packageName, uuid) {
         };
         return d.promise;
 };
+
 
 RomCache.prototype.fetchCachedPackage = function(packageName) {
    var that = this;
@@ -300,9 +383,18 @@ function doLoadRom(emscripten, romUrl, romProgress, fileProgress ) {
     }
 
 
+
+
+    function instantiateCachedWasm(url, version, importObject) {
+        var rc = new RomCache();
+        return new RomCache().instantiateCachedWasm(url, version, importObject);
+    }
+
+
     return {
     LoadRom: doLoadRom,
-    LoadRomRaw: doLoadRomRaw
+    LoadRomRaw: doLoadRomRaw,
+    instantiateCachedWasm: instantiateCachedWasm
     }; //only expose this function
 })();
  
@@ -355,22 +447,9 @@ MoaiJS.prototype.getEmscripten = function() {
     var moaiJSModuleKey = 'moaijsModule';
     var getWasmInstance = function(info) {
         if (!window[moaiJSModuleKey]) {
-            return fetch(me.wasmfile, { credentials: 'same-origin' })
-                .then(function(response) {
-                    if (!response['ok']) {
-                        throw "failed to load wasm binary file at '" + wasmBinaryFile + "'";
-                    }
-                    return response['arrayBuffer']();
-                })
-                .then(function(binary) {
-                    return WebAssembly.instantiate(binary, info)
-                })
-                .then(function(output) { 
-                    window[moaiJSModuleKey] = output['module']; //stash it for next use
-                    return output['instance'];
-                })
+            return D.promisify(RomLoader.instantiateCachedWasm(me.wasmfile, 1, info))
         } else {
-            return WebAssembly.instantiate(window[moaiJSModuleKey], info)
+            return D.promisify(WebAssembly.instantiate(window[moaiJSModuleKey], info))
         }
     }
 
@@ -382,7 +461,7 @@ MoaiJS.prototype.getEmscripten = function() {
             console.log("got wasm okay waiting for runtime init"); 
           //  wasmLoaded.resolve()
         })
-        .catch(function(reason) {
+        .error(function(reason) {
             console.error('failed to asynchronously prepare wasm: ' + reason);
             wasmLoaded.reject('failed to asynchronously prepare wasm: ' + reason);
         });

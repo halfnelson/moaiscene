@@ -191,8 +191,7 @@ export class MoaiHost extends React.Component<IHostProps, IHostState> {
 
     sendEngineMessage(msg: any) {
         var msgJson =JSON.stringify(msg);
-        
-        console.log('executing processMessage("'+escapeLuaString(msgJson)+'")');
+        console.log('Sending Message: ("'+escapeLuaString(msgJson)+'")');
         this.moai.AKURunString('processMessage("'+escapeLuaString(msgJson)+'")');
     }
 

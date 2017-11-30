@@ -19,7 +19,7 @@ end
 
 function processMessage(msg)
     local messagePayload = MOAIJsonParser.decode(msg)
-    if (messagePayload and nullToNil(messagePayload.type)) then
+    if (messagePayload and messagePayload.type ~= MOAIJsonParser.JSON_NULL) then
         Editor:handleMessage(messagePayload)
     end
 end

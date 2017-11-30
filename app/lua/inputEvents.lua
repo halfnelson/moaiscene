@@ -54,7 +54,7 @@ end
 
 local keyEvent = rx.Subject.create()
 local function onKeyEvent(keycode, down)
-    KeyEvent:onNext( keycode, down )
+    keyEvent:onNext( keycode, down )
 end
 MOAIInputMgr.device.keyboard:setKeyCallback( onKeyEvent )
 

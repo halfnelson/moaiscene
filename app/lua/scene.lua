@@ -34,6 +34,24 @@ function Scene:resolveName(entity)
   end
 end
 
+function Scene:detachFromParent(obj)
+  if not obj.parent then return end
+  obj.parent.children[obj.name] = nil
+  obj.parent = nil
+end
+  
+
+
+function Scene:setParent(obj, parent)
+  self:detachFromParent(obj)
+  if not parent then return end
+  obj.parent = parent
+  if not parent.children then
+    parent.children = {}
+  end
+  parent.children[obj.name] = obj
+end
+
 function Scene:resolveEntity(name, parent)
   
  -- if not parent and (string.find(name, "_scene", 1, true) == 1) then
@@ -51,13 +69,15 @@ function Scene:resolveEntity(name, parent)
     thisSegment = string.sub(name, 1, dotidx) 
   end
 
-  if parent[thisSegment] == nil then return nil end
+  local current = parent.children and parent.children[thisSegment]
+
+  if not current then return nil end
 
   if remainder then
-     return self:resolveEntity(remainder, parent[thisSegment])
+     return self:resolveEntity(remainder, current)
   end
 
-  return parent[thisSegment]
+  return current
 
 end
 

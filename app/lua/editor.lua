@@ -6,7 +6,7 @@ Editor = {
   viewport = MOAIViewport.new (),
   camera = MOAICamera.new (),
   layer = MOAIPartitionViewLayer.new(),
-  selection = {}
+  selection = {},
   scene = nil
 }
 
@@ -129,7 +129,7 @@ propClick:subscribe(
       print("gotpropclick", prop, layer)
       Editor:sendMessage({
           type = "propClick",
-          propName = Editor.scene:resolveName(prop)
+          propName = Editor.scene:resolveName(prop),
           ctrlDown = Events.keyIsDown(MOAIKeyCode.CONTROL)
       })
    end,
@@ -166,14 +166,11 @@ function Editor:createObject(objClass, name, parentName, args)
   local obj = self:createObjectByClassName(objClass, args)
   
   if not obj then return end
-  if not parent.children then
-    parent.children = {}
-  end
-
-  parent.children[name] = obj
+  
   obj.name = name
-  obj.parent = parent
-
+  
+  self.scene:setParent(obj, parent)
+  
   print("Object created", obj)
 
   if (obj.setViewport) then
@@ -224,7 +221,7 @@ function Editor:handleMessage(msg)
 
   if (msg.type == "setRefProperty") then
       local ref = nullToNil(msg.value)       
-      self:setProperty(msg.target, msg.propertyName, ref and self.scene:resolveEntity(ref) or nil ) 
+      self:setObjectProperty(msg.target, msg.propertyName, ref and self.scene:resolveEntity(ref) or nil ) 
   end
 end
 

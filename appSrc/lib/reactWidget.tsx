@@ -12,18 +12,15 @@ export class ReactWidget<T extends React.ComponentClass> extends Widget {
         super();
         this.props = props;
         this.component = component;
-        console.log("got constructed");
     }
 
     protected onResize(msg: ResizeMessage): void {
         this.width = msg.width;
         this.height = msg.height;
-        console.log("got resize");
         this.update();
     }
 
     protected onUpdateRequest(msg: Message): void {
-        console.log("gotupdate");
         ReactDOM.render(
             <this.component
                 {...this.props }

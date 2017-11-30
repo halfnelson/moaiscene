@@ -43,7 +43,6 @@ class MoaiEngine implements SceneEngine {
 
     constructor() {
         this.sendEngineMessage = (msg: any) => {
-            console.log("pushing message",msg);
             this.pendingEngineMessages.push(msg);
         }
     }
@@ -54,7 +53,7 @@ class MoaiEngine implements SceneEngine {
     }
    
     onEngineMessage(msg: any) {
-       console.log("got message", msg);
+       console.log("got engine message", msg);
        if (msg.type == "ComponentInfo") {
             this.components.resolve(msg.components);
        }
@@ -66,7 +65,7 @@ class MoaiEngine implements SceneEngine {
     
     onAttach(sendEngineMessage: messageSender) {
         this.sendEngineMessage = sendEngineMessage;
-        sendEngineMessage({msg:"Attached to engine111"});
+        sendEngineMessage({msg:"Attached to engine"});
         this.pendingEngineMessages.forEach(msg =>  sendEngineMessage(msg));
         this.components.resolve(this.dummyComponents());
     }
@@ -186,41 +185,6 @@ class MoaiEngine implements SceneEngine {
     }
 
     getComponents(): Promise<Array<SceneComponent>> {
-       /* var components:Array<SceneComponent> = [];
-
-        components.push({
-            name: 'MOAIPartitionViewLayer',
-            properties: []
-        });
-
-        components.push({
-            name: 'MOAIGraphicsProp',
-            properties: [
-                {
-                    name: "Deck",
-                    type: "ref"
-                },
-                {
-                    name: "Partition",
-                    type: "ref"
-                }
-            ]
-        });
-
-        components.push({
-            name: 'MOAISpriteDeck2D',
-            properties: [
-                {
-                    name: "Texture",
-                    type: "scalar"
-                },
-                {
-                    name: "Rect",
-                    type: "scalar"
-                }
-            ]
-        });*/
-        console.log("returning promise", this.components.promise)
          return this.components.promise;
     }
 
